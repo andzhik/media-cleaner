@@ -1,0 +1,42 @@
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/src:/app/src
+      - ./mnt/input:/media/input:ro
+      - ./mnt/output:/media/output:rw
+      - job-data:/job-data
+    environment:
+      - INPUT_ROOT=/media/input
+      - OUTPUT_ROOT=/media/output
+      - JOB_DATA_ROOT=/job-data
+    depends_on:
+      - worker
+
+  worker:
+    build: ./worker
+    volumes:
+      - ./worker/src:/app/src
+      - ./mnt/input:/media/input:ro
+      - ./mnt/output:/media/output:rw
+      - job-data:/job-data
+    environment:
+      - INPUT_ROOT=/media/input
+      - OUTPUT_ROOT=/media/output
+      - JOB_DATA_ROOT=/job-data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+
+volumes:
+  job-data:
+
+

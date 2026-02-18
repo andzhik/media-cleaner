@@ -1,0 +1,63 @@
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDEs/Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.tox/
+.nox/
+.mypy_cache/
+.venv/
+venv/
+env/
+*.log
+
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env
+.env.local
+.env.*.local
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project Specific
+mnt/input/*
+!mnt/input/.gitkeep
+mnt/output/*
+!mnt/output/.gitkeep
+mnt/job-data/*
+!mnt/job-data/.gitkeep
+
+# Docker
+.dockerignore
+!frontend/.dockerignore
+!backend/Dockerfile
+!worker/Dockerfile
+!frontend/Dockerfile
+
+# Specific logs in backend
+backend/ffprobe_debug.log
+backend/pytest.log

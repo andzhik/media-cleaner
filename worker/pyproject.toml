@@ -1,0 +1,15 @@
+[project]
+name = "video-cleaner-worker"
+version = "0.1.0"
+description = "Worker for Video Cleaner Web"
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[tool.flit.module]
+name = "worker"
+
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
