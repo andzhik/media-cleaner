@@ -13,7 +13,7 @@ start "Backend" cmd /k "cd /d "%PROJECT_ROOT%\backend" && set "INPUT_ROOT=%INPUT
 @REM echo Starting Worker...
 @REM start "Worker" cmd /k "cd /d "%PROJECT_ROOT%\worker" && set "INPUT_ROOT=%INPUT_ROOT%" && set "OUTPUT_ROOT=%OUTPUT_ROOT%" && set "JOB_DATA_ROOT=%JOB_DATA_ROOT%" && set "PYTHONPATH=src" && python -m worker.main"
 
-@REM echo Starting Frontend...
-@REM start "Frontend" cmd /k "cd /d "%PROJECT_ROOT%\frontend" && npm run dev"
+echo Starting Frontend...
+start "Frontend" cmd /k "cd /d "%PROJECT_ROOT%\frontend" && npm run dev"
 
 echo All services launched.

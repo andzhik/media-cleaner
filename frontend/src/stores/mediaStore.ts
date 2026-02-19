@@ -8,11 +8,27 @@ export const mediaStore = reactive({
     languages: [] as string[],
     loading: false,
     error: null as string | null,
+    expandedKeys: {} as Record<string, boolean>,
 
     async loadTree() {
         try {
             this.loading = true;
-            this.tree = await fetchTree();
+            const tree = await fetchTree();
+
+            // Expand all nodes by default
+            const keys: Record<string, boolean> = {};
+            const expandNodes = (node: any) => {
+                if (!node) return;
+                node.key = node.rel_path;
+                keys[node.rel_path] = true;
+                if (node.children) {
+                    node.children.forEach((c: any) => expandNodes(c));
+                }
+            };
+            expandNodes(tree);
+            this.expandedKeys = keys;
+
+            this.tree = tree;
             // Automatically load the root directory
             if (this.tree) {
                 await this.loadDirectory('/');
@@ -47,7 +63,7 @@ export const mediaStore = reactive({
                 selectedAudio: [],
                 selectedSubs: []
             }));
-            this.languages = Array.from(data.languages).sort();
+            this.languages = data.languages;
         } catch (e: any) {
             this.error = e.message;
         } finally {

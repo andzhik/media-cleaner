@@ -9,7 +9,7 @@ def build_tree(path: Path, root: Path) -> FileNode:
     """
     Recursively builds a tree of FileNode objects containing only directories.
     """
-    name = "ROOT" if path == root else path.name
+    name = "/" if path == root else path.name
     
     # Standardize path to use forward slashes and ensure it starts with /
     rel_path = "/" + str(path.relative_to(root)).replace("\\", "/")

@@ -23,6 +23,7 @@ const onNodeExpand = (node: any) => {
     <div class="h-full overflow-auto">
         <Tree 
             :value="mediaStore.tree ? [mediaStore.tree] : []" 
+            v-model:expandedKeys="mediaStore.expandedKeys"
             selectionMode="single"
             @node-select="onNodeSelect"
             @node-expand="onNodeExpand"
