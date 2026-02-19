@@ -2,6 +2,9 @@
 
 This document describes the REST API for the Video Cleaner backend service.
 
+## Tools
+- Install REST Client extension for VS Code/Antigravity/etc to run test requests directly from this file.
+
 ## Base URL
 All API endpoints are prefixed with `/api`.
 The server runs on `http://localhost:8000` by default.
@@ -15,8 +18,11 @@ Returns a hierarchical tree of directories starting from the configured input ro
 
 - **URL**: `/api/tree`
 - **Method**: `GET`
+- **Example**:
+```http
+http://localhost:8000/api/tree
+```
 - **Response**: `FileNode` (hierarchical)
-
 ```json
 {
   "name": "ROOT",
@@ -40,8 +46,11 @@ Lists video files in a specific directory. It also probes each video file to ext
 - **Method**: `GET`
 - **Query Parameters**:
   - `dir`: Relative path to the directory (e.g., `/Movies`)
+- **Example**:
+```http
+http://localhost:8000/api/list?dir=/tv/Fallout
+```
 - **Response**: `DirectoryContent`
-
 ```json
 {
   "dir": "/Movies",
@@ -98,6 +107,7 @@ Retrieves the current status of a specific job.
 - **URL**: `/api/jobs/{job_id}`
 - **Method**: `GET`
 - **Response**: `JobStatus`
+- **Example**: `curl "http://localhost:8000/api/jobs/123e4567-e89b-12d3-a456-426614174000"`
 
 ```json
 {

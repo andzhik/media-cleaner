@@ -53,5 +53,5 @@ async def list_directory(dir: str = Query(..., description="Relative path to dir
     return DirectoryContent(
         dir=dir,
         files=files,
-        languages=sorted(list(languages))
+        languages=languages
     )
