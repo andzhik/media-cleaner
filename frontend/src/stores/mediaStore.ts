@@ -6,6 +6,7 @@ export const mediaStore = reactive({
     currentDir: null as string | null,
     files: [] as any[],
     languages: [] as string[],
+    selectedLanguages: [] as string[],
     loading: false,
     error: null as string | null,
     expandedKeys: {} as Record<string, boolean>,
@@ -50,20 +51,11 @@ export const mediaStore = reactive({
             this.files = data.files.map((f: any) => ({
                 ...f,
                 includeFile: true,
-                // Default: select all audio/subs? Or none?
-                // Plan says: "bulk-select streams to keep".
-                // Let's default to selecting 'unknown' + maybe 'eng'?
-                // Better: Select ALL by default, user unchecks? 
-                // Or select NONE? 
-                // "Stream-pruned" implies removing stuff.
-                // Let's start with nothing selected, user selects what to keep.
-                // OR select everything, user removes.
-                // Let's select "unknown" and English by default?
-                // Simplest: Empty selection.
-                selectedAudio: [],
-                selectedSubs: []
+                selectedAudio: f.audio_streams.map((s: any) => s.id),
+                selectedSubs: f.subtitle_streams.map((s: any) => s.id)
             }));
             this.languages = data.languages;
+            this.selectedLanguages = [...data.languages];
         } catch (e: any) {
             this.error = e.message;
         } finally {
@@ -76,25 +68,25 @@ export const mediaStore = reactive({
             if (!f.includeFile) return;
 
             if (type === 'audio' || type === 'both') {
-                const hasLang = f.audio_streams.some((s: any) => s.language === lang);
-                if (hasLang) {
+                const streamsOfLang = f.audio_streams.filter((s: any) => s.language === lang);
+                streamsOfLang.forEach((s: any) => {
                     if (selected) {
-                        if (!f.selectedAudio.includes(lang)) f.selectedAudio.push(lang);
+                        if (!f.selectedAudio.includes(s.id)) f.selectedAudio.push(s.id);
                     } else {
-                        f.selectedAudio = f.selectedAudio.filter((l: string) => l !== lang);
+                        f.selectedAudio = f.selectedAudio.filter((id: number) => id !== s.id);
                     }
-                }
+                });
             }
 
             if (type === 'subtitle' || type === 'both') {
-                const hasLang = f.subtitle_streams.some((s: any) => s.language === lang);
-                if (hasLang) {
+                const streamsOfLang = f.subtitle_streams.filter((s: any) => s.language === lang);
+                streamsOfLang.forEach((s: any) => {
                     if (selected) {
-                        if (!f.selectedSubs.includes(lang)) f.selectedSubs.push(lang);
+                        if (!f.selectedSubs.includes(s.id)) f.selectedSubs.push(s.id);
                     } else {
-                        f.selectedSubs = f.selectedSubs.filter((l: string) => l !== lang);
+                        f.selectedSubs = f.selectedSubs.filter((id: number) => id !== s.id);
                     }
-                }
+                });
             }
         });
     }

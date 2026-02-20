@@ -9,7 +9,9 @@ class FfmpegRunner:
                    output_path: Path, 
                    audio_languages: List[str], 
                    subtitle_languages: List[str], 
-                   progress_callback: Callable[[float], None]):
+                   progress_callback: Callable[[float], None],
+                   audio_stream_ids: List[int] = None,
+                   subtitle_stream_ids: List[int] = None):
         
         # Build command
         # Map all video streams
@@ -20,52 +22,30 @@ class FfmpegRunner:
             "-c", "copy"
         ]
 
-        # Map audio streams by language
-        # We need to probe first to know which indices match? 
-        # Or acts as a filter?
-        # ffmpeg -map 0:m:language:eng is supported in newer ffmpeg but maybe complex to combine with 'unknown'.
-        # Safest way: 
-        # 1. We kept things simple in plan: "Backend translates language selections into ffmpeg mapping"
-        # 2. But here I moved logic to worker.
-        # 3. Worker has instructions "audio_languages".
-        # 4. ffmpeg can select by metadata.
-        
-        # -map 0:a:m:language:eng ? 
-        # If we want to keep 'unknown' (und), we need to handle that.
-        
-        # Let's try to use negative mapping? No.
-        # Let's use inclusive mapping.
-        
-        # Construct maps. 
-        # Problem: 'unknown' might not be tagged.
-        # So we might need to probe here again or pass stream indices from backend.
-        # The backend plan said: "Backend translates language selections into ffmpeg mapping". 
-        # But `ProcessRequest` has `audio_languages: Set[str]`. 
-        # So the backend *didn't* provide indices in the request model I implemented. 
-        # It provided languages.
-        
-        # So, the worker needs to decide which streams to keep.
-        # It's better to probe here to get exact stream indices.
-        
-        # Let's do a quick probe.
-        stream_indices = self._probe_streams(input_path)
-        
-        # Filter
-        kv_audio = set(audio_languages)
-        kv_subs = set(subtitle_languages)
-        
-        at_least_one_audio = False
-        
-        for s in stream_indices['audio']:
-            lang = s.get('tags', {}).get('language', 'unknown')
-            if lang in kv_audio:
-                cmd.extend(["-map", f"0:{s['index']}"])
-                at_least_one_audio = True
-                
-        for s in stream_indices['subtitle']:
-            lang = s.get('tags', {}).get('language', 'unknown')
-            if lang in kv_subs:
-                cmd.extend(["-map", f"0:{s['index']}"])
+        # Use specific indices if provided
+        if audio_stream_ids is not None or subtitle_stream_ids is not None:
+            if audio_stream_ids:
+                for idx in audio_stream_ids:
+                    cmd.extend(["-map", f"0:{idx}"])
+            if subtitle_stream_ids:
+                for idx in subtitle_stream_ids:
+                    cmd.extend(["-map", f"0:{idx}"])
+        else:
+            # Fallback to language-based mapping
+            stream_indices = self._probe_streams(input_path)
+            
+            kv_audio = set(audio_languages)
+            kv_subs = set(subtitle_languages)
+            
+            for s in stream_indices['audio']:
+                lang = s.get('tags', {}).get('language', 'unknown')
+                if lang in kv_audio:
+                    cmd.extend(["-map", f"0:{s['index']}"])
+                    
+            for s in stream_indices['subtitle']:
+                lang = s.get('tags', {}).get('language', 'unknown')
+                if lang in kv_subs:
+                    cmd.extend(["-map", f"0:{s['index']}"])
 
         # If no audio selected/found, what to do? 
         # Usually we might want to keep *something* or just proceed without audio.

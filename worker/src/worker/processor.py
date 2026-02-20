@@ -80,26 +80,53 @@ class JobProcessor:
             output_dir = output_root / output_dir_rel.lstrip("/")
             output_dir.mkdir(parents=True, exist_ok=True)
             
-            total_files = len(files)
-            for idx, file_rel in enumerate(files):
-                self.update_status(job_id, "processing", (idx / total_files) * 100, current_file=file_rel)
-                
-                input_path = input_root / file_rel.lstrip("/")
-                output_path = output_dir / Path(file_rel).name
-                
-                # Check if input exists
-                if not input_path.exists():
-                     print(f"Input not found: {input_path}")
-                     continue
+            # Use 'selections' if available, otherwise use 'files' (fallback)
+            selections = job_data.get("selections")
+            
+            if selections:
+                total_files = len(selections)
+                for idx, sel in enumerate(selections):
+                    file_rel = sel["rel_path"]
+                    self.update_status(job_id, "processing", (idx / total_files) * 100, current_file=file_rel)
+                    
+                    input_path = input_root / file_rel.lstrip("/")
+                    output_path = output_dir / Path(file_rel).name
+                    
+                    if not input_path.exists():
+                        print(f"Input not found: {input_path}")
+                        continue
 
-                runner = FfmpegRunner()
-                runner.run_ffmpeg(
-                    input_path, 
-                    output_path, 
-                    job_data["audio_languages"], 
-                    job_data["subtitle_languages"],
-                    lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel)
-                )
+                    runner = FfmpegRunner()
+                    runner.run_ffmpeg(
+                        input_path, 
+                        output_path, 
+                        job_data["audio_languages"], 
+                        job_data["subtitle_languages"],
+                        lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel),
+                        audio_stream_ids=sel.get("audio_stream_ids"),
+                        subtitle_stream_ids=sel.get("subtitle_stream_ids")
+                    )
+            else:
+                total_files = len(files)
+                for idx, file_rel in enumerate(files):
+                    self.update_status(job_id, "processing", (idx / total_files) * 100, current_file=file_rel)
+                    
+                    input_path = input_root / file_rel.lstrip("/")
+                    output_path = output_dir / Path(file_rel).name
+                    
+                    # Check if input exists
+                    if not input_path.exists():
+                         print(f"Input not found: {input_path}")
+                         continue
+
+                    runner = FfmpegRunner()
+                    runner.run_ffmpeg(
+                        input_path, 
+                        output_path, 
+                        job_data["audio_languages"], 
+                        job_data["subtitle_languages"],
+                        lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel)
+                    )
 
             self.update_status(job_id, "completed", 100.0)
             shutil.move(processing_file, self.completed_dir / job_file.name)

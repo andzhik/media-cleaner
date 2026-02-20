@@ -26,13 +26,20 @@ class DirectoryContent(BaseModel):
     files: List[VideoFile]
     languages: List[str]
 
+class FileSelection(BaseModel):
+    rel_path: str
+    audio_stream_ids: List[int]
+    subtitle_stream_ids: List[int]
+
 class ProcessRequest(BaseModel):
     dir: Optional[str] = None
-    files: Optional[List[str]] = None
+    files: Optional[List[str]] = None  # Deprecated in favor of selections
     output_dir: str
-    # Selected languages to KEEP (e.g. "eng", "jpa", "unknown")
+    # Global selected languages to KEEP (e.g. "eng", "jpa", "unknown")
     audio_languages: List[str]
     subtitle_languages: List[str]
+    # Specific per-file selections
+    selections: Optional[List[FileSelection]] = None
 
 class JobStatus(BaseModel):
     job_id: str

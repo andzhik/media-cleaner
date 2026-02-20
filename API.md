@@ -85,10 +85,16 @@ Queues a new processing job to clean video files based on selected languages.
 ```json
 {
   "dir": "/Movies",
-  "files": ["/Movies/movie.mkv"],
   "output_dir": "/Output",
   "audio_languages": ["eng", "jpa"],
-  "subtitle_languages": ["eng"]
+  "subtitle_languages": ["eng"],
+  "selections": [
+    {
+      "rel_path": "/Movies/movie.mkv",
+      "audio_stream_ids": [1, 2],
+      "subtitle_stream_ids": [5]
+    }
+  ]
 }
 ```
 
@@ -150,10 +156,16 @@ Subscribe to real-time updates for a specific job using Server-Sent Events.
 
 ### ProcessRequest
 - `dir`: string (optional, source directory)
-- `files`: List[string] (optional, specific files to process)
+- `files`: List[string] (optional, specific files to process, deprecated)
 - `output_dir`: string (destination)
-- `audio_languages`: List[string] (languages to keep)
-- `subtitle_languages`: List[string] (languages to keep)
+- `audio_languages`: List[string] (global languages to keep)
+- `subtitle_languages`: List[string] (global languages to keep)
+- `selections`: List[FileSelection] (optional, granular per-file stream selection)
+
+### FileSelection
+- `rel_path`: string
+- `audio_stream_ids`: List[integer]
+- `subtitle_stream_ids`: List[integer]
 
 ### JobStatus
 - `job_id`: string

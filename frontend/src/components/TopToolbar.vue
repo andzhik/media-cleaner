@@ -10,31 +10,32 @@ const outputDir = ref('processed');
 
 const languages = computed(() => mediaStore.languages);
 
-const toggleBatch = (lang: string, type: 'audio' | 'subtitle', value: boolean) => {
-    mediaStore.toggleLanguage(lang, type, value);
+const toggleBatch = (lang: string, value: boolean) => {
+    mediaStore.toggleLanguage(lang, 'both', value);
+    if (value) {
+        if (!mediaStore.selectedLanguages.includes(lang)) mediaStore.selectedLanguages.push(lang);
+    } else {
+        mediaStore.selectedLanguages = mediaStore.selectedLanguages.filter(l => l !== lang);
+    }
 };
 
 const onProcess = async () => {
     if (!mediaStore.currentDir) return;
     
-    const allSelectedAudio = new Set<string>();
-    const allSelectedSubs = new Set<string>();
-    const filesToProcess = [];
-
-    for (const f of mediaStore.files) {
-        if (f.includeFile) {
-            filesToProcess.push(f.rel_path);
-            f.selectedAudio.forEach((l: string) => allSelectedAudio.add(l));
-            f.selectedSubs.forEach((l: string) => allSelectedSubs.add(l));
-        }
-    }
+    const selections = mediaStore.files
+        .filter(f => f.includeFile)
+        .map(f => ({
+            rel_path: f.rel_path,
+            audio_stream_ids: f.selectedAudio,
+            subtitle_stream_ids: f.selectedSubs
+        }));
 
     const payload = {
         dir: mediaStore.currentDir,
-        files: filesToProcess,
         output_dir: outputDir.value,
-        audio_languages: Array.from(allSelectedAudio),
-        subtitle_languages: Array.from(allSelectedSubs)
+        audio_languages: mediaStore.selectedLanguages,
+        subtitle_languages: mediaStore.selectedLanguages,
+        selections: selections
     };
     
     await jobStore.startJob(payload);
@@ -43,20 +44,13 @@ const onProcess = async () => {
 
 <template>
     <div class="p-3 surface-section border-bottom-1 surface-border flex flex-wrap gap-4 align-items-center justify-content-between">
-        <!-- Left: Batch Checkboxes -->
+        <!-- Left: Unified Batch Checkboxes -->
         <div class="flex gap-4">
             <div class="flex align-items-center">
-                <span class="font-bold mr-2 text-700">Batch Audio:</span>
-                <div v-for="lang in languages" :key="'aud-'+lang" class="mr-3 flex align-items-center">
-                    <Checkbox :binary="true" @change="e => toggleBatch(lang, 'audio', e.target.checked)" />
-                    <span class="ml-1 text-700">{{ lang }}</span>
-                </div>
-            </div>
-            <div class="flex align-items-center">
-                <span class="font-bold mr-2 text-700">Batch Subs:</span>
-                <div v-for="lang in languages" :key="'sub-'+lang" class="mr-3 flex align-items-center">
-                    <Checkbox :binary="true" @change="e => toggleBatch(lang, 'subtitle', e.target.checked)" />
-                    <span class="ml-1 text-700">{{ lang }}</span>
+                <span class="font-bold mr-2 text-700 text-sm">Languages:</span>
+                <div v-for="lang in languages" :key="'batch-'+lang" class="mr-3 flex align-items-center">
+                    <Checkbox :modelValue="mediaStore.selectedLanguages.includes(lang)" :binary="true" @update:modelValue="v => toggleBatch(lang, v)" />
+                    <span class="ml-1 text-700 uppercase">{{ lang === 'unknown' ? 'UNK' : lang }}</span>
                 </div>
             </div>
         </div>

@@ -26,7 +26,7 @@ const formatLang = (lang: string) => lang === 'unknown' ? 'UNK' : lang.toUpperCa
                 <template #body="slotProps">
                     <div class="flex flex-wrap gap-3">
                         <div v-for="stream in slotProps.data.audio_streams" :key="stream.id" class="flex align-items-center gap-1">
-                            <Checkbox v-model="slotProps.data.selectedAudio" :value="stream.language" />
+                            <Checkbox v-model="slotProps.data.selectedAudio" :value="stream.id" />
                             <span>{{ formatLang(stream.language) }}</span>
                             <span v-if="stream.title" class="text-xs text-color-secondary">({{ stream.title }})</span>
                         </div>
@@ -38,7 +38,7 @@ const formatLang = (lang: string) => lang === 'unknown' ? 'UNK' : lang.toUpperCa
                 <template #body="slotProps">
                     <div class="flex flex-wrap gap-3">
                         <div v-for="stream in slotProps.data.subtitle_streams" :key="stream.id" class="flex align-items-center gap-1">
-                            <Checkbox v-model="slotProps.data.selectedSubs" :value="stream.language" />
+                            <Checkbox v-model="slotProps.data.selectedSubs" :value="stream.id" />
                             <span>{{ formatLang(stream.language) }}</span>
                             <span v-if="stream.title" class="text-xs text-color-secondary">({{ stream.title }})</span>
                         </div>
