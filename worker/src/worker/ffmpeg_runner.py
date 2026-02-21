@@ -1,5 +1,6 @@
 import subprocess
 import re
+import json
 from pathlib import Path
 from typing import List, Callable, Set
 
@@ -49,8 +50,9 @@ class FfmpegRunner:
 
         # If no audio selected/found, what to do? 
         # Usually we might want to keep *something* or just proceed without audio.
-        # Lets proceed.
-        
+        # Add output path
+        cmd.append(str(output_path))
+
         # Run
         print(f"Executing: {' '.join(cmd)}")
         

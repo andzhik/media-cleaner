@@ -38,6 +38,7 @@ class JobProcessor:
         processing_file = self.processing_dir / job_file.name
         shutil.move(job_file, processing_file)
         
+        job_data = {}
         try:
             with open(processing_file, "r") as f:
                 job_data = json.load(f)
