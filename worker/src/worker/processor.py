@@ -84,6 +84,8 @@ class JobProcessor:
             # Use 'selections' if available, otherwise use 'files' (fallback)
             selections = job_data.get("selections")
             
+            all_logs: list = []
+
             if selections:
                 total_files = len(selections)
                 for idx, sel in enumerate(selections):
@@ -98,14 +100,15 @@ class JobProcessor:
                         continue
 
                     runner = FfmpegRunner()
-                    runner.run_ffmpeg(
+                    log = runner.run_ffmpeg(
                         input_path, 
                         output_path, 
                         job_data["audio_languages"], 
                         job_data["subtitle_languages"],
-                        lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel),
+                        lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel, logs=all_logs),
                         audio_stream_ids=sel.get("audio_stream_ids"),
-                        subtitle_stream_ids=sel.get("subtitle_stream_ids")
+                        subtitle_stream_ids=sel.get("subtitle_stream_ids"),
+                        log_callback=lambda line: all_logs.append(line)
                     )
             else:
                 total_files = len(files)
@@ -121,15 +124,16 @@ class JobProcessor:
                          continue
 
                     runner = FfmpegRunner()
-                    runner.run_ffmpeg(
+                    log = runner.run_ffmpeg(
                         input_path, 
                         output_path, 
                         job_data["audio_languages"], 
                         job_data["subtitle_languages"],
-                        lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel)
+                        lambda p: self.update_status(job_id, "processing", ((idx + p/100) / total_files) * 100, current_file=file_rel, logs=all_logs),
+                        log_callback=lambda line: all_logs.append(line)
                     )
 
-            self.update_status(job_id, "completed", 100.0)
+            self.update_status(job_id, "completed", 100.0, logs=all_logs)
             shutil.move(processing_file, self.completed_dir / job_file.name)
             
         except Exception as e:
@@ -167,7 +171,16 @@ class JobProcessor:
         tmp_file = status_file.with_suffix(".tmp")
         with open(tmp_file, "w") as f:
             json.dump(data, f)
-        os.replace(tmp_file, status_file)
+        
+        # Retry replacing the file to handle Windows file locking issues
+        # (e.g. if the API is currently reading the file)
+        for _ in range(10):
+            try:
+                os.replace(tmp_file, status_file)
+                break
+            except OSError:
+                import time
+                time.sleep(0.05)
 
 if __name__ == "__main__":
     processor = JobProcessor()

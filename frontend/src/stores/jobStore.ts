@@ -28,7 +28,7 @@ export const jobStore = reactive({
         const url = getJobEventsUrl(jobId);
         this.eventSource = new EventSource(url);
 
-        this.eventSource.onmessage = (event) => {
+        this.eventSource.addEventListener('status', (event: MessageEvent) => {
             const data = JSON.parse(event.data);
             this.status = data.status;
             this.progress = data.overall_percent;
@@ -41,7 +41,7 @@ export const jobStore = reactive({
                 this.eventSource?.close();
                 this.eventSource = null;
             }
-        };
+        });
 
         this.eventSource.onerror = (e) => {
             console.error("SSE Error", e);

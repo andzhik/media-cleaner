@@ -4,8 +4,7 @@ import MediaTable from './MediaTable.vue';
 import TopToolbar from './TopToolbar.vue';
 import JobProgress from './JobProgress.vue';
 import JobLogs from './JobLogs.vue';
-import Splitter from 'primevue/splitter';
-import SplitterPanel from 'primevue/splitterpanel';
+
 </script>
 
 <template>
@@ -25,20 +24,20 @@ import SplitterPanel from 'primevue/splitterpanel';
         <div class="flex-grow-1 flex flex-column overflow-hidden">
             <TopToolbar />
             
-            <Splitter layout="vertical" class="flex-grow-1 border-none surface-ground" stateKey="main-vertical-splitter" stateStorage="local">
-                <SplitterPanel :size="60" :minSize="30" class="flex flex-column overflow-hidden">
-                     <div class="flex-grow-1 relative overflow-auto surface-card p-2">
+            <div class="flex-grow-1 flex flex-column overflow-hidden surface-ground">
+                <div class="flex-1 flex flex-column overflow-hidden">
+                     <div class="flex-grow-1 relative overflow-auto surface-card p-2 min-h-0">
                          <MediaTable />
                      </div>
-                </SplitterPanel>
-                <SplitterPanel :size="40" :minSize="20" class="flex flex-column overflow-hidden surface-card border-top-1 surface-border">
+                </div>
+                <div class="flex-1 flex flex-column overflow-hidden surface-card border-top-1 surface-border">
                     <div class="p-2 border-bottom-1 surface-border font-bold text-900 surface-section">Processing Status</div>
                     <JobProgress class="p-3" />
-                    <div class="flex-grow-1 relative overflow-hidden flex flex-column">
-                        <JobLogs />
+                    <div class="flex-grow-1 relative overflow-hidden flex flex-column min-h-0">
+                        <JobLogs class="flex-grow-1 min-h-0" />
                     </div>
-                </SplitterPanel>
-            </Splitter>
+                </div>
+            </div>
         </div>
     </div>
   </div>
