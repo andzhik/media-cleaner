@@ -7,25 +7,15 @@ import RadioButton from 'primevue/radiobutton';
 import { mediaStore } from '../stores/mediaStore';
 import { jobStore } from '../stores/jobStore';
 
+const envMediaTypes = (import.meta.env.VITE_MEDIA_TYPES as string) || 'tv show,movies';
+const availableMediaTypes = envMediaTypes.split(',').map(s => s.trim());
+
 const outputDir = ref('');
-const mediaType = ref('tv');
+const mediaType = ref(availableMediaTypes[0] || 'tv');
 
-watch(() => mediaStore.currentDir, (newDir) => {
-    if (newDir) {
-        outputDir.value = newDir === '/' ? '/' + mediaType.value : newDir;
-    }
-}, { immediate: true });
-
-watch(outputDir, (newVal) => {
-    if (newVal) {
-        const sep = newVal.includes('\\') ? '\\' : '/';
-        const segments = newVal.split(sep);
-        const index = segments[0] === '' ? 1 : 0;
-        if (segments.length > index && (segments[index] === 'tv' || segments[index] === 'movie')) {
-            if (mediaType.value !== segments[index]) {
-                mediaType.value = segments[index];
-            }
-        }
+watch(() => mediaStore.currentDir, (currentDir) => {
+    if (currentDir) {
+        outputDir.value = currentDir.replace(/^(\/)([^\/]*)(.*)/, "$1" + mediaType.value + "$3");
     }
 }, { immediate: true });
 
@@ -92,13 +82,9 @@ const onProcess = async () => {
         <!-- Center/Right: Output Controls -->
         <div class="flex gap-2 align-items-center">
             <div class="flex gap-3 align-items-center mr-3">
-                <div class="flex align-items-center">
-                    <RadioButton v-model="mediaType" inputId="type-tv" name="mediaType" value="tv" @change="onMediaTypeChange" />
-                    <label for="type-tv" class="ml-2">TV</label>
-                </div>
-                <div class="flex align-items-center">
-                    <RadioButton v-model="mediaType" inputId="type-movie" name="mediaType" value="movies" @change="onMediaTypeChange" />
-                    <label for="type-movie" class="ml-2">Movies</label>
+                <div v-for="type in availableMediaTypes" :key="type" class="flex align-items-center">
+                    <RadioButton v-model="mediaType" :inputId="'type-' + type" name="mediaType" :value="type" @change="onMediaTypeChange" />
+                    <label :for="'type-' + type" class="ml-2 capitalize">{{ type === 'tv' ? 'TV' : type }}</label>
                 </div>
             </div>
             <span class="p-input-icon-left">
