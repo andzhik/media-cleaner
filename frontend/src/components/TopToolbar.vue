@@ -3,16 +3,44 @@ import { ref, computed, watch } from 'vue';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
+import RadioButton from 'primevue/radiobutton';
 import { mediaStore } from '../stores/mediaStore';
 import { jobStore } from '../stores/jobStore';
 
 const outputDir = ref('');
+const mediaType = ref('tv');
 
 watch(() => mediaStore.currentDir, (newDir) => {
     if (newDir) {
-        outputDir.value = newDir === '/' ? '' : newDir;
+        outputDir.value = newDir === '/' ? '/' + mediaType.value : newDir;
     }
 }, { immediate: true });
+
+watch(outputDir, (newVal) => {
+    if (newVal) {
+        const sep = newVal.includes('\\') ? '\\' : '/';
+        const segments = newVal.split(sep);
+        const index = segments[0] === '' ? 1 : 0;
+        if (segments.length > index && (segments[index] === 'tv' || segments[index] === 'movie')) {
+            if (mediaType.value !== segments[index]) {
+                mediaType.value = segments[index];
+            }
+        }
+    }
+}, { immediate: true });
+
+const onMediaTypeChange = () => {
+    if (!outputDir.value) {
+        outputDir.value = '/' + mediaType.value;
+        return;
+    }
+    const sep = outputDir.value.includes('\\') ? '\\' : '/';
+    let segments = outputDir.value.split(sep);
+    const index = segments[0] === '' ? 1 : 0;
+    segments[index] = mediaType.value;
+    outputDir.value = segments.join(sep);
+};
+
 
 const languages = computed(() => mediaStore.languages);
 
@@ -63,9 +91,19 @@ const onProcess = async () => {
 
         <!-- Center/Right: Output Controls -->
         <div class="flex gap-2 align-items-center">
+            <div class="flex gap-3 align-items-center mr-3">
+                <div class="flex align-items-center">
+                    <RadioButton v-model="mediaType" inputId="type-tv" name="mediaType" value="tv" @change="onMediaTypeChange" />
+                    <label for="type-tv" class="ml-2">TV</label>
+                </div>
+                <div class="flex align-items-center">
+                    <RadioButton v-model="mediaType" inputId="type-movie" name="mediaType" value="movies" @change="onMediaTypeChange" />
+                    <label for="type-movie" class="ml-2">Movies</label>
+                </div>
+            </div>
             <span class="p-input-icon-left">
                 <i class="pi pi-folder" />
-                <InputText v-model="outputDir" placeholder="Output Folder" class="w-15rem" />
+                <InputText v-model="outputDir" placeholder="Output Folder" class="w-30rem" />
             </span>
             <Button label="Process" icon="pi pi-cog" @click="onProcess" :loading="!!jobStore.activeJobId && !['completed', 'failed'].includes(jobStore.status || '')" :disabled="!mediaStore.currentDir" />
         </div>

@@ -97,7 +97,7 @@ class FfmpegRunner:
             raise Exception(f"ffmpeg failed\n" + "\n".join(log))
 
         emit(f"Done: {input_path} -> {output_path}")
-        emit(" ")
+        emit("---")
 
         return log
 
@@ -129,9 +129,11 @@ class FfmpegRunner:
             if audio_stream_ids:
                 for idx in audio_stream_ids:
                     cmd.extend(["-map", f"0:{idx}"])
+                cmd.extend(['-disposition:a:0', 'default'])
             if subtitle_stream_ids:
                 for idx in subtitle_stream_ids:
                     cmd.extend(["-map", f"0:{idx}"])
+                cmd.extend(['-disposition:s:0', 'default'])
         else:
             # Fallback to language-based mapping
             stream_indices = self._probe_streams(input_path)
