@@ -37,7 +37,7 @@ export const jobStore = reactive({
             this.progress = data.overall_percent;
             this.currentFile = data.current_file;
             if (data.logs && data.logs.length) {
-                this.logs.push(...data.logs);
+                this.logs = data.logs;
             }
 
             if (data.status === 'completed' || data.status === 'failed') {
