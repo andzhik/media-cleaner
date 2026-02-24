@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import { mediaStore } from '../stores/mediaStore';
 import { jobStore } from '../stores/jobStore';
 
-const outputDir = ref('processed');
+const outputDir = ref('');
+
+watch(() => mediaStore.currentDir, (newDir) => {
+    if (newDir) {
+        outputDir.value = newDir === '/' ? '' : newDir;
+    }
+}, { immediate: true });
 
 const languages = computed(() => mediaStore.languages);
 
