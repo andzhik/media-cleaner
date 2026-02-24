@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import { mediaStore } from '../stores/mediaStore';
 import { jobStore } from '../stores/jobStore';
 
-const outputDir = ref('processed');
+const outputDir = ref('');
+
+watch(() => mediaStore.currentDir, (newDir) => {
+    if (newDir) {
+        outputDir.value = newDir === '/' ? '' : newDir;
+    }
+}, { immediate: true });
 
 const onProcess = async () => {
     if (!mediaStore.currentDir) return;

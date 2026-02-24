@@ -72,7 +72,7 @@ class FfmpegRunner:
 
             # Emit progress lines live
             if "frame=" in line:
-                print()
+                print(stripped)
                 emit(stripped)
 
             # Parse duration: "Duration: 00:00:00.00"
