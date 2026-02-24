@@ -57,8 +57,6 @@ class JobProcessor:
             dir_rel = job_data.get("dir")
             output_dir_rel = job_data.get("output_dir", "")
             
-            target_files = []
-            
             if dir_rel:
                 # If dir provided, scanning it again? Or we trust 'files' list?
                 # The prompt says: "Selected directory or explicit file list"

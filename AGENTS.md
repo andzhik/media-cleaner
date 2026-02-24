@@ -1,6 +1,7 @@
 # AGENTS.md — Video Cleaner Web
 
 > Read this file before writing or modifying any code.
+> Try to keep prompt short and concise. Limit file reading to only what you need.
 
 ---
 

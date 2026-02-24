@@ -14,6 +14,9 @@ export const jobStore = reactive({
         try {
             this.error = null;
             this.logs = [];
+            this.status = 'starting';
+            this.progress = 0;
+            this.currentFile = null;
             const res = await startProcess(payload);
             this.activeJobId = res.jobId;
             this.connectEvents(res.jobId);

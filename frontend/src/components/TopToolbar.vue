@@ -61,7 +61,7 @@ const onProcess = async () => {
                 <i class="pi pi-folder" />
                 <InputText v-model="outputDir" placeholder="Output Folder" class="w-15rem" />
             </span>
-            <Button label="Process" icon="pi pi-cog" @click="onProcess" :loading="!!jobStore.activeJobId" :disabled="!mediaStore.currentDir" />
+            <Button label="Process" icon="pi pi-cog" @click="onProcess" :loading="!!jobStore.activeJobId && !['completed', 'failed'].includes(jobStore.status || '')" :disabled="!mediaStore.currentDir" />
         </div>
     </div>
 </template>

@@ -77,7 +77,7 @@ const onProcess = async () => {
     <div class="flex gap-2 align-items-center p-2 border-bottom-1 border-gray-700">
         <label>Output Dir:</label>
         <InputText v-model="outputDir" class="w-20rem" />
-        <Button label="Process" @click="onProcess" :disabled="!mediaStore.currentDir || jobStore.activeJobId" />
+        <Button label="Process" @click="onProcess" :disabled="!mediaStore.currentDir || (!!jobStore.activeJobId && !['completed', 'failed'].includes(jobStore.status || ''))" />
         
         <div v-if="jobStore.activeJobId" class="ml-auto flex align-items-center gap-2">
             <span>Job: {{ jobStore.status }}</span>
