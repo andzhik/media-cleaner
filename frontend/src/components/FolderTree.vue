@@ -8,9 +8,7 @@ onMounted(() => {
 });
 
 const onNodeSelect = (node: any) => {
-    if (node.is_dir) {
-        mediaStore.loadDirectory(node.rel_path);
-    }
+    mediaStore.loadDirectory(node.rel_path);
 };
 
 const onNodeExpand = (node: any) => {

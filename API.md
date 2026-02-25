@@ -27,12 +27,10 @@ http://localhost:8000/api/tree
 {
   "name": "ROOT",
   "rel_path": "/",
-  "is_dir": true,
   "children": [
     {
       "name": "Movies",
       "rel_path": "/Movies",
-      "is_dir": true,
       "children": [...]
     }
   ]
@@ -139,7 +137,6 @@ Subscribe to real-time updates for a specific job using Server-Sent Events.
 ### FileNode
 - `name`: string
 - `rel_path`: string
-- `is_dir`: boolean
 - `children`: List[FileNode] (optional)
 
 ### VideoFile

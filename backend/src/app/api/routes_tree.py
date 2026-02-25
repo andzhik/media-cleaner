@@ -16,7 +16,7 @@ def build_tree(path: Path, root: Path) -> FileNode:
     if rel_path == "/.":
         rel_path = "/"
         
-    node = FileNode(name=name, rel_path=rel_path, is_dir=True)
+    node = FileNode(name=name, rel_path=rel_path)
     
     children = []
     try:

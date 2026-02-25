@@ -4,7 +4,6 @@ from typing import List, Optional, Set
 class FileNode(BaseModel):
     name: str
     rel_path: str
-    is_dir: bool
     children: Optional[List['FileNode']] = None
 
 FileNode.model_rebuild()

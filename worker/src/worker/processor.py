@@ -46,8 +46,8 @@ class JobProcessor:
             job_id = job_data["job_id"]
             self.update_status(job_id, "processing", 0.0)
 
-            # Resolve paths
-            # Note: Input paths in job_data are relative to INPUT_ROOT
+            # Resolve paths:
+            # Input paths in job_data are relative to INPUT_ROOT
             # Output dir is relative to OUTPUT_ROOT
             
             input_root = INPUT_ROOT
