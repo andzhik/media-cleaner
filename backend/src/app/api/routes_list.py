@@ -6,8 +6,6 @@ import asyncio
 
 router = APIRouter()
 
-VIDEO_EXTENSIONS = {".mkv", ".mp4", ".avi", ".mov", ".ts"}
-
 @router.get("/list", response_model=DirectoryContent)
 async def list_directory(dir: str = Query(..., description="Relative path to directory")):
     try:
@@ -29,7 +27,7 @@ async def list_directory(dir: str = Query(..., description="Relative path to dir
     video_files_map = {} # path -> VideoFile
     
     for item in items:
-        if item.is_file() and item.suffix.lower() in VIDEO_EXTENSIONS:
+        if item.is_file() and item.suffix.lower() in settings.VIDEO_EXTENSIONS:
             rel_path = "/" + str(item.relative_to(settings.INPUT_ROOT)).replace("\\", "/")
             vf = VideoFile(name=item.name, rel_path=rel_path)
             files.append(vf)

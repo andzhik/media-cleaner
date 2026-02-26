@@ -5,6 +5,8 @@ class Settings:
     INPUT_ROOT: Path = Path(os.getenv("INPUT_ROOT", "/media/input"))
     OUTPUT_ROOT: Path = Path(os.getenv("OUTPUT_ROOT", "/media/output"))
     
+    VIDEO_EXTENSIONS = {".mkv", ".mp4", ".avi", ".mov", ".ts", ".m4v"}
+    
     # Ensure roots are absolute
     def __init__(self):
         self.INPUT_ROOT = self.INPUT_ROOT.resolve()
