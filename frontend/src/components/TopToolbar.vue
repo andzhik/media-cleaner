@@ -15,7 +15,7 @@ const mediaType = ref(availableMediaTypes[0] || 'tv');
 
 watch(() => mediaStore.currentDir, (currentDir) => {
     if (currentDir) {
-        outputDir.value = currentDir.replace(/^(\/)([^\/]*)(.*)/, "$1" + mediaType.value + "$3");
+        outputDir.value = '/' + mediaType.value + currentDir;
     }
 }, { immediate: true });
 

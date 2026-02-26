@@ -13,7 +13,7 @@ const formatLang = (lang: string) => lang === 'unknown' ? 'UNK' : lang.toUpperCa
         <div v-else-if="mediaStore.error" class="p-4 text-red-500">{{ mediaStore.error }}</div>
         
         <DataTable v-else :value="mediaStore.files" scrollable scrollHeight="flex" tableStyle="min-width: 50rem">
-            <Column field="name" header="File" style="width: 20%">
+            <Column field="name" header="File">
                 <template #body="slotProps">
                     <div class="flex align-items-center gap-2">
                         <Checkbox v-model="slotProps.data.includeFile" :binary="true" />
@@ -22,7 +22,7 @@ const formatLang = (lang: string) => lang === 'unknown' ? 'UNK' : lang.toUpperCa
                 </template>
             </Column>
             
-            <Column header="Audio" style="width: 40%">
+            <Column header="Audio">
                 <template #body="slotProps">
                     <div class="flex flex-wrap gap-3">
                         <div v-for="stream in slotProps.data.audio_streams" :key="stream.id" class="flex align-items-center gap-1">
@@ -34,7 +34,7 @@ const formatLang = (lang: string) => lang === 'unknown' ? 'UNK' : lang.toUpperCa
                 </template>
             </Column>
 
-            <Column header="Subtitles" style="width: 40%">
+            <Column header="Subtitles">
                 <template #body="slotProps">
                     <div class="flex flex-wrap gap-3">
                         <div v-for="stream in slotProps.data.subtitle_streams" :key="stream.id" class="flex align-items-center gap-1">

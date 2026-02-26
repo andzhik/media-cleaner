@@ -14,7 +14,7 @@ import JobLogs from './JobLogs.vue';
     </div>
     
     <div class="flex-grow-1 overflow-hidden flex">
-        <div class="w-20rem border-right-1 surface-border h-full overflow-hidden flex flex-column surface-card">
+        <div class="w-30rem border-right-1 surface-border h-full flex flex-column surface-card">
             <div class="p-2 font-bold surface-section border-bottom-1 surface-border text-900">
                 Input Folders
             </div>
