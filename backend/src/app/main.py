@@ -2,6 +2,7 @@ import asyncio
 import sys
 import json
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
@@ -48,11 +49,35 @@ async def _poll_status_files():
             print(f"Status poll loop error: {e}")
         await asyncio.sleep(1)
 
+async def _cleanup_old_jobs():
+    """Background task: delete old completed/failed jobs and their status files."""
+    COMPLETED_TTL = 86400        # 1 day
+    FAILED_TTL    = 86400 * 28   # 4 weeks
+    while True:
+        await asyncio.sleep(3600)  # check every hour
+        try:
+            now = time.time()
+            for subdir, ttl in (("completed", COMPLETED_TTL), ("failed", FAILED_TTL)):
+                job_dir = JOB_DATA_ROOT / subdir
+                if not job_dir.exists():
+                    continue
+                for path in job_dir.glob("*.json"):
+                    if now - path.stat().st_mtime > ttl:
+                        job_id = path.stem
+                        path.unlink(missing_ok=True)
+                        status_file = JOB_DATA_ROOT / "status" / f"{job_id}.json"
+                        status_file.unlink(missing_ok=True)
+                        print(f"Cleaned up old job: {job_id}")
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(_poll_status_files())
+    task1 = asyncio.create_task(_poll_status_files())
+    task2 = asyncio.create_task(_cleanup_old_jobs())
     yield
-    task.cancel()
+    task1.cancel()
+    task2.cancel()
 
 
 app = FastAPI(title="Video Cleaner API", lifespan=lifespan)
