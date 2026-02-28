@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed } from 'vue';
 import { jobsListStore } from '../stores/jobsListStore';
+import { cancelJob } from '../api/client';
 
 onMounted(() => jobsListStore.connectEvents());
 onUnmounted(() => jobsListStore.disconnect());
@@ -21,6 +22,12 @@ function basename(path: string): string {
 function jobLabel(job: { dir: string; first_file: string | null; current_file: string | null }): string {
   const source = job.first_file || job.current_file || job.dir;
   return basename(source);
+}
+
+async function removeJob(jobId: string) {
+  try {
+    await cancelJob(jobId);
+  } catch {}
 }
 </script>
 
@@ -49,6 +56,15 @@ function jobLabel(job: { dir: string; first_file: string | null; current_file: s
             <span v-if="job.current_file" class="ml-1">— {{ job.current_file }}</span>
           </div>
         </div>
+        <button
+          v-if="job.status === 'pending'"
+          @click="removeJob(job.job_id)"
+          class="p-link flex-shrink-0 text-400 hover:text-600 border-none bg-transparent cursor-pointer p-0"
+          style="line-height: 1;"
+          title="Cancel job"
+        >
+          <i class="pi pi-times" style="font-size: 0.75rem;" />
+        </button>
       </div>
     </div>
   </div>

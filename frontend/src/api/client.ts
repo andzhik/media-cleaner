@@ -36,3 +36,9 @@ export function getJobEventsUrl(jobId: string) {
 export function getJobsListEventsUrl() {
   return `${API_URL}/jobs/events`;
 }
+
+export async function cancelJob(jobId: string) {
+  const res = await fetch(`${API_URL}/jobs/${jobId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to cancel job");
+  return res.json();
+}

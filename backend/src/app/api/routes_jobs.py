@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from sse_starlette.sse import EventSourceResponse
 from ..core.jobs.store import job_store
@@ -5,6 +7,8 @@ from ..core.jobs.events import event_manager
 from ..core.models import JobStatus
 import asyncio
 import json
+
+JOB_DATA_ROOT = Path(os.getenv("JOB_DATA_ROOT", "/job-data"))
 
 router = APIRouter()
 
@@ -29,6 +33,22 @@ async def jobs_list_events():
             await event_manager.unsubscribe_global(queue)
 
     return EventSourceResponse(event_generator())
+
+@router.delete("/jobs/{job_id}")
+async def cancel_job(job_id: str):
+    job = job_store.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.status != "pending":
+        raise HTTPException(status_code=409, detail="Only pending jobs can be cancelled")
+
+    pending_file = JOB_DATA_ROOT / "pending" / f"{job_id}.json"
+    status_file = JOB_DATA_ROOT / "status" / f"{job_id}.json"
+    pending_file.unlink(missing_ok=True)
+    status_file.unlink(missing_ok=True)
+
+    await event_manager.emit_global(job_store.list_active_jobs())
+    return {"ok": True}
 
 @router.get("/jobs/{job_id}", response_model=JobStatus)
 async def get_job_status(job_id: str):
