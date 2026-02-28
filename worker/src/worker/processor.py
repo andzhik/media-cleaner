@@ -44,6 +44,13 @@ class JobProcessor:
                 job_data = json.load(f)
             
             job_id = job_data["job_id"]
+            
+            # Save for update_status
+            self.current_job_dir = job_data.get("dir")
+            self.current_job_files = job_data.get("files", [])
+            if not self.current_job_files and job_data.get("selections"):
+                self.current_job_files = [s["rel_path"] for s in job_data["selections"]]
+                
             self.update_status(job_id, "processing", 0.0)
 
             # Resolve paths:
@@ -162,7 +169,9 @@ class JobProcessor:
             "status": status,
             "overall_percent": percent,
             "current_file": current_file,
-            "logs": logs or []
+            "logs": logs or [],
+            "dir": getattr(self, "current_job_dir", None),
+            "files": getattr(self, "current_job_files", None)
         }
         
         # Simple atomic write

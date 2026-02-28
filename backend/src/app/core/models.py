@@ -45,4 +45,6 @@ class JobStatus(BaseModel):
     status: str # 'pending', 'processing', 'completed', 'failed'
     overall_percent: float
     current_file: Optional[str] = None
+    dir: Optional[str] = None
+    files: Optional[List[str]] = None
     logs: List[str] = []

@@ -16,10 +16,20 @@ class JobQueue:
 
     async def enqueue(self, request: ProcessRequest) -> str:
         job_id = str(uuid.uuid4())
+        
+        # Determine the effective files list even if deprecated selections are used
+        files_list = []
+        if request.files:
+            files_list = request.files
+        elif request.selections:
+            files_list = [s.rel_path for s in request.selections]
+
         job = JobStatus(
             job_id=job_id,
             status="pending",
-            overall_percent=0.0
+            overall_percent=0.0,
+            dir=request.dir,
+            files=files_list
         )
         job_store.save_job(job)
         

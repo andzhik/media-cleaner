@@ -15,6 +15,20 @@ async def get_job_status(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
+@router.get("/jobs")
+async def stream_jobs():
+    async def event_generator():
+        try:
+            while True:
+                jobs = job_store.list_jobs()
+                active_jobs = [j.model_dump(mode='json') for j in jobs if j.status in ["pending", "processing"]]
+                yield {"event": "jobs", "data": json.dumps(active_jobs)}
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            pass
+            
+    return EventSourceResponse(event_generator())
+
 @router.get("/jobs/{job_id}/events")
 async def job_events(job_id: str):
     job = job_store.get_job(job_id)
