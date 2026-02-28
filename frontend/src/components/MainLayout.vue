@@ -4,6 +4,7 @@ import MediaTable from './MediaTable.vue';
 import TopToolbar from './TopToolbar.vue';
 import JobProgress from './JobProgress.vue';
 import JobLogs from './JobLogs.vue';
+import JobsList from './JobsList.vue';
 
 </script>
 
@@ -18,7 +19,8 @@ import JobLogs from './JobLogs.vue';
             <div class="p-2 font-bold surface-section border-bottom-1 surface-border text-900">
                 Input Folders
             </div>
-            <FolderTree class="flex-grow-1" />
+            <FolderTree class="flex-grow-1 min-h-0" />
+            <JobsList />
         </div>
         
         <div class="flex-grow-1 flex flex-column overflow-hidden">

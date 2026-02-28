@@ -12,6 +12,7 @@ if sys.platform == 'win32':
 
 from .api import routes_tree, routes_list, routes_process, routes_jobs
 from .core.jobs.events import event_manager
+from .core.jobs.store import job_store
 from .core.models import JobStatus
 
 JOB_DATA_ROOT = Path(os.getenv("JOB_DATA_ROOT", "/job-data"))
@@ -20,13 +21,16 @@ async def _poll_status_files():
     """Background task: watch the status dir and push updates into SSE queues."""
     status_dir = JOB_DATA_ROOT / "status"
     seen_mtimes: dict = {}
+    prev_active_ids: set = set()
     while True:
         try:
+            changed = False
             if status_dir.exists():
                 for path in status_dir.glob("*.json"):
                     mtime = path.stat().st_mtime
                     if seen_mtimes.get(path.name) != mtime:
                         seen_mtimes[path.name] = mtime
+                        changed = True
                         try:
                             with open(path, "r") as f:
                                 data = json.load(f)
@@ -34,6 +38,12 @@ async def _poll_status_files():
                             await event_manager.emit_update(job)
                         except Exception as e:
                             print(f"Status poll error for {path.name}: {e}")
+            if changed:
+                active_jobs = job_store.list_active_jobs()
+                active_ids = {j.job_id for j in active_jobs}
+                if active_ids != prev_active_ids or changed:
+                    prev_active_ids = active_ids
+                    await event_manager.emit_global(active_jobs)
         except Exception as e:
             print(f"Status poll loop error: {e}")
         await asyncio.sleep(1)

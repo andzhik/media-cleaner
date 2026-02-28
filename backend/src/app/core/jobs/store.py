@@ -44,5 +44,8 @@ class JobStore:
                     pass
         return jobs
 
+    def list_active_jobs(self) -> List[JobStatus]:
+        return [j for j in self.list_jobs() if j.status in ("pending", "processing")]
+
 job_store = JobStore()
 

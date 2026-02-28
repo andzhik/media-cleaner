@@ -16,10 +16,16 @@ class JobQueue:
 
     async def enqueue(self, request: ProcessRequest) -> str:
         job_id = str(uuid.uuid4())
+        first_file = None
+        if request.selections and len(request.selections) == 1:
+            first_file = request.selections[0].rel_path
+
         job = JobStatus(
             job_id=job_id,
             status="pending",
-            overall_percent=0.0
+            overall_percent=0.0,
+            dir=request.dir or "",
+            first_file=first_file
         )
         job_store.save_job(job)
         

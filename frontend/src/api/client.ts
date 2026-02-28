@@ -32,3 +32,7 @@ export async function fetchJob(jobId: string) {
 export function getJobEventsUrl(jobId: string) {
   return `${API_URL}/jobs/${jobId}/events`;
 }
+
+export function getJobsListEventsUrl() {
+  return `${API_URL}/jobs/events`;
+}
