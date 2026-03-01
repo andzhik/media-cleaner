@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Lint (ruff)
+        run: |
+          pip install ruff
+          python -m ruff check .
+
+      - name: Install backend dependencies
+        run: pip install -e "backend[dev]"
+
+      - name: Run backend tests with coverage
+        run: |
+          cd backend
+          python -m pytest --cov=app --cov-report=xml --cov-report=term
+
+      - name: Install worker dependencies
+        run: pip install -e "worker[dev]"
+
+      - name: Run worker tests with coverage
+        run: |
+          cd worker
+          python -m pytest --cov=worker --cov-report=xml --cov-report=term
+
+      - name: Upload backend coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+
+      - name: Upload worker coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-coverage
+          path: worker/coverage.xml
