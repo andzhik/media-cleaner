@@ -98,7 +98,7 @@ class JobProcessor:
                         continue
 
                     runner = FfmpegRunner()
-                    log = runner.run_ffmpeg(
+                    runner.run_ffmpeg(
                         input_path, 
                         output_path, 
                         job_data["audio_languages"], 
@@ -122,7 +122,7 @@ class JobProcessor:
                          continue
 
                     runner = FfmpegRunner()
-                    log = runner.run_ffmpeg(
+                    runner.run_ffmpeg(
                         input_path, 
                         output_path, 
                         job_data["audio_languages"], 

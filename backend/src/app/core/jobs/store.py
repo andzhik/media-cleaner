@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Dict, Optional, List
+from typing import Optional, List
 from ..models import JobStatus
 
 JOB_DATA_ROOT = Path(os.getenv("JOB_DATA_ROOT", "/job-data"))
@@ -40,7 +40,7 @@ class JobStore:
                 try:
                     with open(f, "r") as fp:
                         jobs.append(JobStatus(**json.load(fp)))
-                except:
+                except Exception:
                     pass
         return jobs
 

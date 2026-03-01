@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   test:
@@ -36,7 +34,7 @@ jobs:
       - name: Run worker tests with coverage
         run: |
           cd worker
-          python -m pytest --cov=worker --cov-report=xml --cov-report=term
+          python -m pytest --cov=worker --cov-report=html --cov-report=term
 
       - name: Upload backend coverage report
         uses: actions/upload-artifact@v4

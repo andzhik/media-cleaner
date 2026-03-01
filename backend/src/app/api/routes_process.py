@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter
 from ..core.models import ProcessRequest
 from ..core.jobs.queue import job_queue
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Set
+from typing import List, Optional
 
 class FileNode(BaseModel):
     name: str

@@ -2,7 +2,7 @@ import subprocess
 import re
 import json
 from pathlib import Path
-from typing import List, Callable, Set
+from typing import List, Callable
 
 class FfmpegRunner:
     def run_ffmpeg(self, 
@@ -94,7 +94,7 @@ class FfmpegRunner:
 
         process.wait()
         if process.returncode != 0:
-            raise Exception(f"ffmpeg failed\n" + "\n".join(log))
+            raise Exception("ffmpeg failed\n" + "\n".join(log))
 
         emit(f"Done: {input_path} -> {output_path}")
         emit("---")
