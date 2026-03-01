@@ -26,10 +26,3 @@ A convenience script `run_all.bat` is also provided.
 - `worker/`: Python worker for processing videos with FFmpeg.
 - `mnt/`: Shared volume for input/output media files.
 
-## ❓ Troubleshooting
-
-Facing issues? Check our [Troubleshooting Guide](./TROUBLESHOOTING.md) for solutions to common problems.
-
-## 📝 Implementation Details
-
-For technical details, see the [Implementation Plan](./implementation-plan.md).

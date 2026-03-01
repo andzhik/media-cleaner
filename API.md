@@ -25,7 +25,7 @@ http://localhost:8000/api/tree
 - **Response**: `FileNode` (hierarchical)
 ```json
 {
-  "name": "ROOT",
+  "name": "/",
   "rel_path": "/",
   "children": [
     {
@@ -119,9 +119,22 @@ Retrieves the current status of a specific job.
   "status": "processing",
   "overall_percent": 45.5,
   "current_file": "movie.mkv",
-  "logs": ["Started processing movie.mkv..."]
+  "logs": ["Started processing movie.mkv..."],
+  "dir": "/Movies",
+  "first_file": "/Movies/movie.mkv"
 }
 ```
+
+#### Cancel Job
+Cancels a pending job. Only jobs with status `pending` can be cancelled.
+
+- **URL**: `/api/jobs/{job_id}`
+- **Method**: `DELETE`
+- **Response**:
+```json
+{ "ok": true }
+```
+- Returns `404` if job not found, `409` if job is not in `pending` state.
 
 #### Job Events Stream (SSE)
 Subscribe to real-time updates for a specific job using Server-Sent Events.
@@ -131,6 +144,16 @@ Subscribe to real-time updates for a specific job using Server-Sent Events.
 - **Response**: **text/event-stream**
   - Event: `status`
   - Data: JSON string of `JobStatus`
+
+#### Global Jobs List Events (SSE)
+Subscribe to real-time updates for all active jobs (pending + processing).
+
+- **URL**: `/api/jobs/events`
+- **Method**: `GET`
+- **Response**: **text/event-stream**
+  - Event: `jobs_list`
+  - Data: JSON array of `JobStatus`
+  - Sends the current active job list immediately on connect, then pushes updates on any change.
 
 ## Data Models
 
@@ -170,3 +193,5 @@ Subscribe to real-time updates for a specific job using Server-Sent Events.
 - `overall_percent`: float
 - `current_file`: string (optional)
 - `logs`: List[string]
+- `dir`: string (source directory of the job, empty string if not set)
+- `first_file`: string (optional, first file in the job)
