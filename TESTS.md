@@ -20,6 +20,15 @@ cd worker
 python -m pytest
 ```
 
+## Frontend only
+
+```bash
+cd frontend
+npm test              # run once
+npm run test:watch    # watch mode
+npm run test:coverage # with coverage report
+```
+
 ## Useful flags
 
 ```bat
