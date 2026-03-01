@@ -14,7 +14,16 @@ watch(() => jobStore.logs.length, () => {
 </script>
 
 <template>
-    <div class="surface-ground text-color font-mono text-sm p-2 h-full w-full overflow-y-auto border-none" ref="logContainer">
-        <div v-for="(log, i) in jobStore.logs" :key="i" class="white-space-pre-wrap">{{ log }}</div>
+  <div
+    ref="logContainer"
+    class="surface-ground text-color font-mono text-sm p-2 h-full w-full overflow-y-auto border-none"
+  >
+    <div
+      v-for="(log, i) in jobStore.logs"
+      :key="i"
+      class="white-space-pre-wrap"
+    >
+      {{ log }}
     </div>
+  </div>
 </template>

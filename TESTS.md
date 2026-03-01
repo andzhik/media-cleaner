@@ -10,14 +10,24 @@ run_tests
 
 ```bat
 cd backend
-python -m pytest
+python -m pytest --cov=app --cov-report=xml --cov-report=term --cov-report=term-missing
+
 ```
 
 ## Worker only
 
 ```bat
 cd worker
-python -m pytest
+python -m pytest --cov=worker --cov-report=xml --cov-report=term --cov-report=term-missing
+```
+
+## Frontend only
+
+```bash
+cd frontend
+npm test              # run once
+npm run test:watch    # watch mode
+npm run test:coverage # with coverage report
 ```
 
 ## Useful flags

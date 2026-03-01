@@ -6,7 +6,12 @@
     "scripts": {
         "dev": "vite",
         "build": "vue-tsc -b && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage"
     },
     "dependencies": {
         "@primevue/themes": "^4.5.4",
@@ -16,9 +21,18 @@
         "vue": "^3.5.28"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "@vitejs/plugin-vue": "^6.0.4",
+        "@vitest/coverage-v8": "^4.0.18",
+        "@vue/test-utils": "^2.4.6",
+        "eslint": "^10.0.2",
+        "eslint-plugin-vue": "^10.8.0",
+        "globals": "^17.4.0",
+        "jsdom": "^28.1.0",
         "typescript": "^5.9.3",
+        "typescript-eslint": "^8.56.1",
         "vite": "^6.4.1",
+        "vitest": "^4.0.18",
         "vue-tsc": "^3.2.5"
     }
 }
