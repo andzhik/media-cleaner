@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 import TopToolbar from '../../components/TopToolbar.vue'
 import { mediaStore } from '../../stores/mediaStore'

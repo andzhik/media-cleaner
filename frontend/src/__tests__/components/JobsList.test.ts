@@ -43,9 +43,6 @@ describe('JobsList', () => {
         jobsListStore.jobs = [makeJob({ job_id: 'j1' }), makeJob({ job_id: 'j2' })]
 
         const wrapper = mount(JobsList)
-        const rows = wrapper.findAll('[class*="border-bottom-1"]').filter(el =>
-            el.element.closest('[style*="max-height"]') !== null || el.element.parentElement?.style?.maxHeight
-        )
         // Check that the label text appears for each job
         expect(wrapper.text()).toContain('movie.mkv')
     })

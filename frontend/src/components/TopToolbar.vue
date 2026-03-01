@@ -67,31 +67,62 @@ const onProcess = async () => {
 </script>
 
 <template>
-    <div class="p-3 surface-section border-bottom-1 surface-border flex flex-wrap gap-4 align-items-center justify-content-between">
-        <!-- Left: Unified Batch Checkboxes -->
-        <div class="flex gap-4">
-            <div class="flex align-items-center">
-                <span class="font-bold mr-2 text-700 text-sm">Languages:</span>
-                <div v-for="lang in languages" :key="'batch-'+lang" class="mr-3 flex align-items-center">
-                    <Checkbox :modelValue="mediaStore.selectedLanguages.includes(lang)" :binary="true" @update:modelValue="v => toggleBatch(lang, v)" />
-                    <span class="ml-1 text-700 uppercase">{{ lang === 'unknown' ? 'UNK' : lang }}</span>
-                </div>
-            </div>
+  <div class="p-3 surface-section border-bottom-1 surface-border flex flex-wrap gap-4 align-items-center justify-content-between">
+    <!-- Left: Unified Batch Checkboxes -->
+    <div class="flex gap-4">
+      <div class="flex align-items-center">
+        <span class="font-bold mr-2 text-700 text-sm">Languages:</span>
+        <div
+          v-for="lang in languages"
+          :key="'batch-'+lang"
+          class="mr-3 flex align-items-center"
+        >
+          <Checkbox
+            :model-value="mediaStore.selectedLanguages.includes(lang)"
+            :binary="true"
+            @update:model-value="v => toggleBatch(lang, v)"
+          />
+          <span class="ml-1 text-700 uppercase">{{ lang === 'unknown' ? 'UNK' : lang }}</span>
         </div>
-
-        <!-- Center/Right: Output Controls -->
-        <div class="flex gap-2 align-items-center">
-            <div class="flex gap-3 align-items-center mr-3">
-                <div v-for="type in availableMediaTypes" :key="type" class="flex align-items-center">
-                    <RadioButton v-model="mediaType" :inputId="'type-' + type" name="mediaType" :value="type" @change="onMediaTypeChange" />
-                    <label :for="'type-' + type" class="ml-2 capitalize">{{ type === 'tv' ? 'TV' : type }}</label>
-                </div>
-            </div>
-            <span class="p-input-icon-left">
-                <i class="pi pi-folder" />
-                <InputText v-model="outputDir" placeholder="Output Folder" class="w-30rem" />
-            </span>
-            <Button label="Process" icon="pi pi-cog" @click="onProcess" :loading="!!jobStore.activeJobId && !['completed', 'failed'].includes(jobStore.status || '')" :disabled="!mediaStore.currentDir" />
-        </div>
+      </div>
     </div>
+
+    <!-- Center/Right: Output Controls -->
+    <div class="flex gap-2 align-items-center">
+      <div class="flex gap-3 align-items-center mr-3">
+        <div
+          v-for="type in availableMediaTypes"
+          :key="type"
+          class="flex align-items-center"
+        >
+          <RadioButton
+            v-model="mediaType"
+            :input-id="'type-' + type"
+            name="mediaType"
+            :value="type"
+            @change="onMediaTypeChange"
+          />
+          <label
+            :for="'type-' + type"
+            class="ml-2 capitalize"
+          >{{ type === 'tv' ? 'TV' : type }}</label>
+        </div>
+      </div>
+      <span class="p-input-icon-left">
+        <i class="pi pi-folder" />
+        <InputText
+          v-model="outputDir"
+          placeholder="Output Folder"
+          class="w-30rem"
+        />
+      </span>
+      <Button
+        label="Process"
+        icon="pi pi-cog"
+        :loading="!!jobStore.activeJobId && !['completed', 'failed'].includes(jobStore.status || '')"
+        :disabled="!mediaStore.currentDir"
+        @click="onProcess"
+      />
+    </div>
+  </div>
 </template>
