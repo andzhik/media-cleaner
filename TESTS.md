@@ -10,14 +10,15 @@ run_tests
 
 ```bat
 cd backend
-python -m pytest
+python -m pytest --cov=app --cov-report=xml --cov-report=term --cov-report=term-missing
+
 ```
 
 ## Worker only
 
 ```bat
 cd worker
-python -m pytest
+python -m pytest --cov=worker --cov-report=xml --cov-report=term --cov-report=term-missing
 ```
 
 ## Frontend only
