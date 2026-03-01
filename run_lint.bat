@@ -5,32 +5,24 @@ if "%PROJECT_ROOT:~-1%"=="\" SET "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
 SET FAILED=0
 
 echo ============================================================
-echo  Backend tests
+echo  Backend + Worker lint (ruff)
 echo ============================================================
-cd /d "%PROJECT_ROOT%\backend"
-python -m pytest --cov-report=term --cov=app --cov-report=term-missing %*
+cd /d "%PROJECT_ROOT%"
+python -m ruff check --fix .
 if errorlevel 1 SET FAILED=1
 
 echo.
 echo ============================================================
-echo  Worker tests
-echo ============================================================
-cd /d "%PROJECT_ROOT%\worker"
-python -m pytest --cov-report=term --cov=worker --cov-report=term-missing %*
-if errorlevel 1 SET FAILED=1
-
-echo.
-echo ============================================================
-echo  Frontend tests
+echo  Frontend lint (eslint)
 echo ============================================================
 cd /d "%PROJECT_ROOT%\frontend"
-npm run test:coverage
+npm run lint:fix
 if errorlevel 1 SET FAILED=1
 
 echo.
 if %FAILED%==0 (
-    echo All tests passed.
+    echo All lint checks passed.
 ) else (
-    echo One or more test suites failed.
+    echo One or more lint checks failed.
     exit /b 1
 )
