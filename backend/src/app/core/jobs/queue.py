@@ -9,8 +9,9 @@ JOB_DATA_ROOT = Path(os.getenv("JOB_DATA_ROOT", "/job-data"))
 
 class JobQueue:
     def __init__(self):
-        # We don't need an internal queue if using file-based handoff
         self.pending_dir = JOB_DATA_ROOT / "pending"
+
+    def _ensure_dirs(self):
         self.pending_dir.mkdir(parents=True, exist_ok=True)
 
     async def enqueue(self, request: ProcessRequest) -> str:
@@ -33,6 +34,7 @@ class JobQueue:
         payload["job_id"] = job_id
         
         # Write to pending file
+        self._ensure_dirs()
         job_file = self.pending_dir / f"{job_id}.json"
         with open(job_file, "w") as f:
             json.dump(payload, f)
