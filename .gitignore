@@ -23,6 +23,7 @@ __pycache__/
 venv/
 env/
 *.log
+.ruff_cache/
 
 # Node.js
 node_modules/
@@ -64,3 +65,7 @@ backend/pytest.log
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Test coverage
+coverage.xml
+htmlcov/

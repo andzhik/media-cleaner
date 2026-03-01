@@ -2,7 +2,7 @@ import json
 import subprocess
 import asyncio
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict
 from .models import StreamInfo
 
 async def probe_file(file_path: Path) -> Dict[str, List[StreamInfo]]:
