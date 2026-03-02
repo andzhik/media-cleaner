@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 import TopToolbar from '../../components/TopToolbar.vue'
 import { mediaStore } from '../../stores/mediaStore'
 import { jobStore } from '../../stores/jobStore'
@@ -125,21 +125,25 @@ describe('TopToolbar', () => {
         )
     })
 
-    it('shows Process button as loading when job is active and not terminal', () => {
+    it('Process button is never in loading state regardless of job state', () => {
         mediaStore.currentDir = '/movies'
         jobStore.activeJobId = 'job-1'
         jobStore.status = 'processing'
-
         const wrapper = mountToolbar()
-        expect(wrapper.findComponent(ButtonStub).props('loading')).toBe(true)
+        expect(wrapper.findComponent(ButtonStub).props('loading')).toBeFalsy()
     })
 
-    it('shows Process button as not loading when job is completed', () => {
+    it('Process button is disabled when output directory is manually cleared', async () => {
+        // currentDir is set, so watch sets outputDir — button should be enabled
         mediaStore.currentDir = '/movies'
-        jobStore.activeJobId = 'job-1'
-        jobStore.status = 'completed'
-
         const wrapper = mountToolbar()
-        expect(wrapper.findComponent(ButtonStub).props('loading')).toBe(false)
+        expect(wrapper.findComponent(ButtonStub).props('disabled')).toBe(false)
+
+        // User clears the output dir field
+        await wrapper.findComponent(InputTextStub).vm.$emit('update:modelValue', '')
+        await nextTick()
+
+        // Now button must be disabled even though currentDir is still set
+        expect(wrapper.findComponent(ButtonStub).props('disabled')).toBe(true)
     })
 })

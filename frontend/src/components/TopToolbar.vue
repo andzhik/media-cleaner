@@ -44,7 +44,7 @@ const toggleBatch = (lang: string, value: boolean) => {
 };
 
 const onProcess = async () => {
-    if (!mediaStore.currentDir) return;
+    if (!outputDir.value) return;
     
     const selections = mediaStore.files
         .filter(f => f.includeFile)
@@ -119,8 +119,7 @@ const onProcess = async () => {
       <Button
         label="Process"
         icon="pi pi-cog"
-        :loading="!!jobStore.activeJobId && !['completed', 'failed'].includes(jobStore.status || '')"
-        :disabled="!mediaStore.currentDir"
+        :disabled="!outputDir"
         @click="onProcess"
       />
     </div>
