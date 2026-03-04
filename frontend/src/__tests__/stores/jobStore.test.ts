@@ -75,9 +75,10 @@ describe('startJob', () => {
         expect(jobStore.status).toBe('processing')
     })
 
-    it('switches to new job when current job is completed', async () => {
+    it('switches to new job when current job is completed, preserving existing logs', async () => {
         jobStore.activeJobId = 'job-1'
         jobStore.status = 'completed'
+        jobStore.logs = ['job-1 log']
 
         mockStartProcess.mockResolvedValueOnce({ jobId: 'job-2' })
 
@@ -85,7 +86,7 @@ describe('startJob', () => {
 
         expect(jobStore.activeJobId).toBe('job-2')
         expect(jobStore.status).toBe('starting')
-        expect(jobStore.logs).toEqual([])
+        expect(jobStore.logs).toEqual(['job-1 log'])
     })
 
     it('switches to new job when current job is failed', async () => {
@@ -186,6 +187,7 @@ describe('connectEvents', () => {
 
     it('auto-switches to next processing job when current job completes', () => {
         jobStore.activeJobId = 'job-1'
+        jobStore.logs = ['job-1 log']
         jobStore.connectEvents('job-1')
         const es = jobStore.eventSource as unknown as MockEventSource
 
@@ -205,7 +207,7 @@ describe('connectEvents', () => {
         expect(jobStore.status).toBe('processing')
         expect(jobStore.progress).toBe(30)
         expect(jobStore.currentFile).toBe('vid.mp4')
-        expect(jobStore.logs).toEqual([])
+        expect(jobStore.logs).toEqual(['job-1 log'])
         // New EventSource should be connected
         expect(jobStore.eventSource).not.toBeNull()
         expect((jobStore.eventSource as unknown as MockEventSource).url).toContain('job-2')
@@ -213,6 +215,7 @@ describe('connectEvents', () => {
 
     it('auto-switches to next pending job when no processing job exists', () => {
         jobStore.activeJobId = 'job-1'
+        jobStore.logs = ['job-1 log']
         jobStore.connectEvents('job-1')
         const es = jobStore.eventSource as unknown as MockEventSource
 
@@ -229,7 +232,7 @@ describe('connectEvents', () => {
         expect(es.closed).toBe(true)
         expect(jobStore.activeJobId).toBe('job-2')
         expect(jobStore.status).toBe('pending')
-        expect(jobStore.logs).toEqual([])
+        expect(jobStore.logs).toEqual(['job-1 log'])
         expect(jobStore.eventSource).not.toBeNull()
         expect((jobStore.eventSource as unknown as MockEventSource).url).toContain('job-2')
     })

@@ -54,7 +54,7 @@ async def _poll_status_files():
                                 f.seek(pos)
                                 new_text = f.read()
                                 log_positions[job_id] = f.tell()
-                            new_lines = [l for l in new_text.splitlines() if l]
+                            new_lines = [line for line in new_text.splitlines() if line]
                             if new_lines:
                                 await event_manager.emit_log(job_id, new_lines)
                     except Exception as e:

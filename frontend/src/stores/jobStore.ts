@@ -17,7 +17,6 @@ export const jobStore = reactive({
             const res = await startProcess(payload);
             // Only switch view if not currently watching a running job
             if (!this.activeJobId || this.status === 'completed' || this.status === 'failed' || !this.status) {
-                this.logs = [];
                 this.status = 'starting';
                 this.progress = 0;
                 this.currentFile = null;
@@ -47,7 +46,6 @@ export const jobStore = reactive({
                 // Auto-switch to next running job if one exists
                 const next = jobsListStore.jobs.find(j => j.job_id !== jobId);
                 if (next) {
-                    this.logs = [];
                     this.status = next.status;
                     this.progress = next.overall_percent;
                     this.currentFile = next.current_file;

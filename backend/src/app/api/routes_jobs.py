@@ -75,7 +75,7 @@ async def job_events(job_id: str):
             if log_file.exists():
                 try:
                     with open(log_file, "r", encoding="utf-8") as f:
-                        lines = [l for l in f.read().splitlines() if l]
+                        lines = [line for line in f.read().splitlines() if line]
                     if lines:
                         yield {"event": "log", "data": json.dumps(lines)}
                 except Exception:
