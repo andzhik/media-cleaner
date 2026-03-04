@@ -6,6 +6,7 @@ import JobProgress from './JobProgress.vue';
 import JobLogs from './JobLogs.vue';
 import JobsList from './JobsList.vue';
 
+const showLogs = import.meta.env.VITE_SHOW_LOGS !== 'false';
 </script>
 
 <template>
@@ -34,7 +35,7 @@ import JobsList from './JobsList.vue';
               <MediaTable />
             </div>
           </div>
-          <div class="flex-1 flex flex-column overflow-hidden surface-card border-top-1 surface-border">
+          <div v-if="showLogs" class="flex-1 flex flex-column overflow-hidden surface-card border-top-1 surface-border">
             <div class="p-2 border-bottom-1 surface-border font-bold text-900 surface-section">
               Processing Status
             </div>
