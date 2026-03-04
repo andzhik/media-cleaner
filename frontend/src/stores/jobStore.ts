@@ -7,6 +7,7 @@ export const jobStore = reactive({
     progress: 0,
     currentFile: null as string | null,
     logs: [] as string[],
+    fileProgress: {} as Record<string, any>,
     error: null as string | null,
     eventSource: null as EventSource | null,
 
@@ -36,6 +37,7 @@ export const jobStore = reactive({
             this.status = data.status;
             this.progress = data.overall_percent;
             this.currentFile = data.current_file;
+            this.fileProgress = data.file_progress ?? {};
             if (data.logs && data.logs.length) {
                 this.logs = data.logs;
             }

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 class FileNode(BaseModel):
     name: str
@@ -48,3 +48,4 @@ class JobStatus(BaseModel):
     logs: List[str] = []
     dir: str = ""
     first_file: Optional[str] = None
+    file_progress: Dict[str, Any] = {}

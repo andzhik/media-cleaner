@@ -211,6 +211,7 @@ def test_update_status_writes_correct_json(processor, job_dirs):
         "overall_percent": 42.5,
         "current_file": "/foo.mkv",
         "logs": ["line1"],
+        "file_progress": {},
     }
 
 
@@ -221,6 +222,7 @@ def test_update_status_defaults_logs_and_current_file(processor, job_dirs):
     data = json.loads((job_data_root / "status" / "j2.json").read_text())
     assert data["logs"] == []
     assert data["current_file"] is None
+    assert data["file_progress"] == {}
 
 
 def test_update_status_retries_os_replace_on_error(processor):

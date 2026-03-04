@@ -19,6 +19,7 @@ function resetStore() {
         progress: 0,
         currentFile: null,
         logs: [],
+        fileProgress: {},
         error: null,
         eventSource: null,
     })
@@ -40,6 +41,7 @@ describe('startJob', () => {
         expect(jobStore.status).toBeDefined()
         expect(jobStore.error).toBeNull()
         expect(jobStore.logs).toEqual([])
+        expect(jobStore.fileProgress).toEqual({})
     })
 
     it('sets error when startProcess throws', async () => {
@@ -79,12 +81,47 @@ describe('connectEvents', () => {
             overall_percent: 42,
             current_file: 'movie.mkv',
             logs: ['log line 1'],
+            file_progress: { '/movie.mkv': { status: 'processing', percent: 42 } },
         })
 
         expect(jobStore.status).toBe('processing')
         expect(jobStore.progress).toBe(42)
         expect(jobStore.currentFile).toBe('movie.mkv')
         expect(jobStore.logs).toEqual(['log line 1'])
+        expect(jobStore.fileProgress).toEqual({ '/movie.mkv': { status: 'processing', percent: 42 } })
+    })
+
+    it('sets fileProgress from status event', () => {
+        jobStore.connectEvents('job-1')
+        const es = jobStore.eventSource as unknown as MockEventSource
+
+        es.dispatchEvent('status', {
+            status: 'processing',
+            overall_percent: 50,
+            current_file: 'a.mkv',
+            logs: [],
+            file_progress: {
+                '/a.mkv': { status: 'processing', percent: 50, frame: 100 },
+                '/b.mkv': { status: 'queued' },
+            },
+        })
+
+        expect(jobStore.fileProgress['/a.mkv'].status).toBe('processing')
+        expect(jobStore.fileProgress['/b.mkv'].status).toBe('queued')
+    })
+
+    it('defaults fileProgress to empty object when field absent', () => {
+        jobStore.connectEvents('job-1')
+        const es = jobStore.eventSource as unknown as MockEventSource
+
+        es.dispatchEvent('status', {
+            status: 'processing',
+            overall_percent: 10,
+            current_file: null,
+            logs: [],
+        })
+
+        expect(jobStore.fileProgress).toEqual({})
     })
 
     it('closes eventSource on completed status', () => {
