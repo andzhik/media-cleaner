@@ -1,5 +1,6 @@
 import { reactive } from 'vue';
 import { startProcess, getJobEventsUrl } from '../api/client';
+import { jobsListStore } from './jobsListStore';
 
 export const jobStore = reactive({
     activeJobId: null as string | null,
@@ -13,13 +14,16 @@ export const jobStore = reactive({
     async startJob(payload: any) {
         try {
             this.error = null;
-            this.logs = [];
-            this.status = 'starting';
-            this.progress = 0;
-            this.currentFile = null;
             const res = await startProcess(payload);
-            this.activeJobId = res.jobId;
-            this.connectEvents(res.jobId);
+            // Only switch view if not currently watching a running job
+            if (!this.activeJobId || this.status === 'completed' || this.status === 'failed' || !this.status) {
+                this.logs = [];
+                this.status = 'starting';
+                this.progress = 0;
+                this.currentFile = null;
+                this.activeJobId = res.jobId;
+                this.connectEvents(res.jobId);
+            }
         } catch (e: any) {
             this.error = e.message;
         }
@@ -36,14 +40,26 @@ export const jobStore = reactive({
             this.status = data.status;
             this.progress = data.overall_percent;
             this.currentFile = data.current_file;
-            if (data.logs && data.logs.length) {
-                this.logs = data.logs;
-            }
 
             if (data.status === 'completed' || data.status === 'failed') {
                 this.eventSource?.close();
                 this.eventSource = null;
+                // Auto-switch to next running job if one exists
+                const next = jobsListStore.jobs.find(j => j.job_id !== jobId);
+                if (next) {
+                    this.logs = [];
+                    this.status = next.status;
+                    this.progress = next.overall_percent;
+                    this.currentFile = next.current_file;
+                    this.activeJobId = next.job_id;
+                    this.connectEvents(next.job_id);
+                }
             }
+        });
+
+        this.eventSource.addEventListener('log', (event: MessageEvent) => {
+            const lines: string[] = JSON.parse(event.data);
+            this.logs.push(...lines);
         });
 
         this.eventSource.onerror = (e) => {

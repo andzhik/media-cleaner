@@ -19,9 +19,11 @@ from .core.models import JobStatus
 JOB_DATA_ROOT = Path(os.getenv("JOB_DATA_ROOT", "/job-data"))
 
 async def _poll_status_files():
-    """Background task: watch the status dir and push updates into SSE queues."""
+    """Background task: watch status dir and log files, push updates into SSE queues."""
     status_dir = JOB_DATA_ROOT / "status"
+    logs_dir = JOB_DATA_ROOT / "logs"
     seen_mtimes: dict = {}
+    log_positions: dict = {}          # job_id -> last read position
     prev_active_ids: set = set()
     while True:
         try:
@@ -39,6 +41,25 @@ async def _poll_status_files():
                             await event_manager.emit_update(job)
                         except Exception as e:
                             print(f"Status poll error for {path.name}: {e}")
+
+            # Tail log files for active jobs
+            if logs_dir.exists():
+                for log_path in logs_dir.glob("*.log"):
+                    job_id = log_path.stem
+                    pos = log_positions.get(job_id, 0)
+                    try:
+                        size = log_path.stat().st_size
+                        if size > pos:
+                            with open(log_path, "r", encoding="utf-8") as f:
+                                f.seek(pos)
+                                new_text = f.read()
+                                log_positions[job_id] = f.tell()
+                            new_lines = [l for l in new_text.splitlines() if l]
+                            if new_lines:
+                                await event_manager.emit_log(job_id, new_lines)
+                    except Exception as e:
+                        print(f"Log tail error for {job_id}: {e}")
+
             if changed:
                 active_jobs = job_store.list_active_jobs()
                 active_ids = {j.job_id for j in active_jobs}
@@ -67,6 +88,8 @@ async def _cleanup_old_jobs():
                         path.unlink(missing_ok=True)
                         status_file = JOB_DATA_ROOT / "status" / f"{job_id}.json"
                         status_file.unlink(missing_ok=True)
+                        log_file = JOB_DATA_ROOT / "logs" / f"{job_id}.log"
+                        log_file.unlink(missing_ok=True)
                         print(f"Cleaned up old job: {job_id}")
         except Exception as e:
             print(f"Cleanup error: {e}")

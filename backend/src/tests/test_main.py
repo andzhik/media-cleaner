@@ -31,6 +31,7 @@ async def test_poll_emits_update_for_new_status_file(tmp_path):
          patch("app.main.job_store") as mock_store, \
          patch("asyncio.sleep", fake_sleep):
         mock_em.emit_update = AsyncMock()
+        mock_em.emit_log = AsyncMock()
         mock_em.emit_global = AsyncMock()
         mock_store.list_active_jobs.return_value = [job]
 
@@ -58,6 +59,7 @@ async def test_poll_emits_global_when_files_change(tmp_path):
          patch("app.main.job_store") as mock_store, \
          patch("asyncio.sleep", fake_sleep):
         mock_em.emit_update = AsyncMock()
+        mock_em.emit_log = AsyncMock()
         mock_em.emit_global = AsyncMock()
         mock_store.list_active_jobs.return_value = [job]
 
@@ -87,6 +89,7 @@ async def test_poll_skips_unchanged_files_on_second_iteration(tmp_path):
          patch("app.main.job_store") as mock_store, \
          patch("asyncio.sleep", fake_sleep):
         mock_em.emit_update = AsyncMock()
+        mock_em.emit_log = AsyncMock()
         mock_em.emit_global = AsyncMock()
         mock_store.list_active_jobs.return_value = [job]
 
@@ -111,6 +114,7 @@ async def test_poll_handles_invalid_json_gracefully(tmp_path):
          patch("app.main.job_store") as mock_store, \
          patch("asyncio.sleep", fake_sleep):
         mock_em.emit_update = AsyncMock()
+        mock_em.emit_log = AsyncMock()
         mock_em.emit_global = AsyncMock()
         mock_store.list_active_jobs.return_value = []
 
@@ -135,6 +139,7 @@ async def test_poll_does_nothing_when_status_dir_absent(tmp_path):
          patch("app.main.job_store") as mock_store, \
          patch("asyncio.sleep", fake_sleep):
         mock_em.emit_update = AsyncMock()
+        mock_em.emit_log = AsyncMock()
         mock_em.emit_global = AsyncMock()
         mock_store.list_active_jobs.return_value = []
 
@@ -145,6 +150,32 @@ async def test_poll_does_nothing_when_status_dir_absent(tmp_path):
     mock_em.emit_global.assert_not_called()
 
 
+async def test_poll_tails_log_file_and_emits_log_event(tmp_path):
+    status_dir = tmp_path / "status"
+    status_dir.mkdir()
+    logs_dir = tmp_path / "logs"
+    logs_dir.mkdir()
+
+    (logs_dir / "poll-log.log").write_text("[2026-03-03T12:00:00.000] hello\n")
+
+    async def fake_sleep(_):
+        raise asyncio.CancelledError()
+
+    with patch("app.main.JOB_DATA_ROOT", tmp_path), \
+         patch("app.main.event_manager") as mock_em, \
+         patch("app.main.job_store") as mock_store, \
+         patch("asyncio.sleep", fake_sleep):
+        mock_em.emit_update = AsyncMock()
+        mock_em.emit_log = AsyncMock()
+        mock_em.emit_global = AsyncMock()
+        mock_store.list_active_jobs.return_value = []
+
+        with pytest.raises(asyncio.CancelledError):
+            await _poll_status_files()
+
+    mock_em.emit_log.assert_called_once_with("poll-log", ["[2026-03-03T12:00:00.000] hello"])
+
+
 # ---------------------------------------------------------------------------
 # _cleanup_old_jobs
 # ---------------------------------------------------------------------------
@@ -152,14 +183,18 @@ async def test_poll_does_nothing_when_status_dir_absent(tmp_path):
 async def test_cleanup_deletes_expired_completed_job(tmp_path):
     completed_dir = tmp_path / "completed"
     status_dir = tmp_path / "status"
+    logs_dir = tmp_path / "logs"
     completed_dir.mkdir()
     status_dir.mkdir()
+    logs_dir.mkdir()
 
     job_id = "old-completed"
     completed_file = completed_dir / f"{job_id}.json"
     status_file = status_dir / f"{job_id}.json"
+    log_file = logs_dir / f"{job_id}.log"
     completed_file.write_text("{}")
     status_file.write_text("{}")
+    log_file.write_text("some log")
 
     # Make the file appear older than the 1-day TTL
     old_mtime = time.time() - 86401
@@ -181,6 +216,7 @@ async def test_cleanup_deletes_expired_completed_job(tmp_path):
 
     assert not completed_file.exists()
     assert not status_file.exists()
+    assert not log_file.exists()
 
 
 async def test_cleanup_deletes_expired_failed_job(tmp_path):

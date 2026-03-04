@@ -70,14 +70,29 @@ async def job_events(job_id: str):
             # Send initial status
             yield {"event": "status", "data": job.model_dump_json()}
 
-            while True:
-                # Wait for update
-                update = await queue.get()
-                yield {"event": "status", "data": update.model_dump_json()}
+            # Send existing log file contents as initial "log" event
+            log_file = JOB_DATA_ROOT / "logs" / f"{job_id}.log"
+            if log_file.exists():
+                try:
+                    with open(log_file, "r", encoding="utf-8") as f:
+                        lines = [l for l in f.read().splitlines() if l]
+                    if lines:
+                        yield {"event": "log", "data": json.dumps(lines)}
+                except Exception:
+                    pass
 
-                # Close if finished
-                if update.status in ["completed", "failed"]:
-                     break
+            while True:
+                # Wait for update (tuple of (event_type, payload))
+                msg = await queue.get()
+                event_type, payload = msg
+
+                if event_type == "status":
+                    yield {"event": "status", "data": payload.model_dump_json()}
+                    # Close if finished
+                    if payload.status in ["completed", "failed"]:
+                        break
+                elif event_type == "log":
+                    yield {"event": "log", "data": json.dumps(payload)}
         except asyncio.CancelledError:
             await event_manager.unsubscribe(job_id, queue)
         finally:

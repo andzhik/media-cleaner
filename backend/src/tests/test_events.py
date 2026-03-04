@@ -67,7 +67,8 @@ async def test_emit_update_delivers_to_subscriber():
     job = _make_job("job-1")
     q = await mgr.subscribe("job-1")
     await mgr.emit_update(job)
-    result = q.get_nowait()
+    event_type, result = q.get_nowait()
+    assert event_type == "status"
     assert result.job_id == "job-1"
 
 
@@ -77,8 +78,8 @@ async def test_emit_update_delivers_to_all_subscribers_of_job():
     q1 = await mgr.subscribe("job-1")
     q2 = await mgr.subscribe("job-1")
     await mgr.emit_update(job)
-    assert q1.get_nowait().job_id == "job-1"
-    assert q2.get_nowait().job_id == "job-1"
+    assert q1.get_nowait()[1].job_id == "job-1"
+    assert q2.get_nowait()[1].job_id == "job-1"
 
 
 async def test_emit_update_only_delivers_to_matching_job():
@@ -95,6 +96,20 @@ async def test_emit_update_with_no_listeners_does_not_raise():
     mgr = EventManager()
     job = _make_job("no-listeners")
     await mgr.emit_update(job)  # should not raise
+
+
+async def test_emit_log_delivers_lines_to_subscriber():
+    mgr = EventManager()
+    q = await mgr.subscribe("job-1")
+    await mgr.emit_log("job-1", ["line1", "line2"])
+    event_type, lines = q.get_nowait()
+    assert event_type == "log"
+    assert lines == ["line1", "line2"]
+
+
+async def test_emit_log_with_no_listeners_does_not_raise():
+    mgr = EventManager()
+    await mgr.emit_log("no-listeners", ["line"])  # should not raise
 
 
 # --- global subscribe / emit_global / unsubscribe_global ---
