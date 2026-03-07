@@ -24,7 +24,12 @@ class EventManager:
     async def emit_update(self, job: JobStatus):
         if job.job_id in self._listeners:
             for q in self._listeners[job.job_id]:
-                await q.put(job)
+                await q.put(("status", job))
+
+    async def emit_log(self, job_id: str, lines: List[str]):
+        if job_id in self._listeners:
+            for q in self._listeners[job_id]:
+                await q.put(("log", lines))
 
     async def subscribe_global(self) -> asyncio.Queue:
         q = asyncio.Queue()

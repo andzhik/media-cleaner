@@ -190,7 +190,10 @@ def test_process_job_writes_failed_status_on_exception(processor, job_dirs):
     status_file = job_data_root / "status" / "job7.json"
     data = json.loads(status_file.read_text())
     assert data["status"] == "failed"
-    assert "boom" in data["logs"][0]
+
+    log_file = job_data_root / "logs" / "job7.log"
+    assert log_file.exists()
+    assert "boom" in log_file.read_text()
 
 
 # ---------------------------------------------------------------------------
@@ -200,7 +203,7 @@ def test_process_job_writes_failed_status_on_exception(processor, job_dirs):
 
 def test_update_status_writes_correct_json(processor, job_dirs):
     job_data_root, *_ = job_dirs
-    processor.update_status("j1", "processing", 42.5, current_file="/foo.mkv", logs=["line1"])
+    processor.update_status("j1", "processing", 42.5, current_file="/foo.mkv")
 
     status_file = job_data_root / "status" / "j1.json"
     assert status_file.exists()
@@ -210,17 +213,28 @@ def test_update_status_writes_correct_json(processor, job_dirs):
         "status": "processing",
         "overall_percent": 42.5,
         "current_file": "/foo.mkv",
-        "logs": ["line1"],
     }
 
 
-def test_update_status_defaults_logs_and_current_file(processor, job_dirs):
+def test_update_status_defaults_current_file(processor, job_dirs):
     job_data_root, *_ = job_dirs
     processor.update_status("j2", "completed", 100.0)
 
     data = json.loads((job_data_root / "status" / "j2.json").read_text())
-    assert data["logs"] == []
     assert data["current_file"] is None
+
+
+def test_log_line_appends_to_log_file(processor, job_dirs):
+    job_data_root, *_ = job_dirs
+    processor._log_line("j1", "hello world")
+    processor._log_line("j1", "second line")
+
+    log_file = job_data_root / "logs" / "j1.log"
+    assert log_file.exists()
+    lines = log_file.read_text().strip().splitlines()
+    assert len(lines) == 2
+    assert "] hello world" in lines[0]
+    assert "] second line" in lines[1]
 
 
 def test_update_status_retries_os_replace_on_error(processor):

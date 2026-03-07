@@ -5,6 +5,7 @@ if "%PROJECT_ROOT:~-1%"=="\" SET "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
 
 @REM SET "INPUT_ROOT=%PROJECT_ROOT%\mnt\input"
 SET "INPUT_ROOT=e:\video"
+@REM SET "OUTPUT_ROOT=e:\video library\"
 SET "OUTPUT_ROOT=e:\output"
 SET "JOB_DATA_ROOT=%PROJECT_ROOT%\mnt\job-data"
 SET "VITE_MEDIA_TYPES=tv show,movies"

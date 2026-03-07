@@ -155,19 +155,20 @@ async def _drain(gen) -> list:
     return events
 
 
-async def test_job_events_generator_yields_initial_then_terminates_on_completed():
+async def test_job_events_generator_yields_initial_then_terminates_on_completed(tmp_path):
     from app.api.routes_jobs import job_events
 
     processing = _make_job("j1", "processing")
     completed = _make_job("j1", "completed")
 
     q = asyncio.Queue()
-    await q.put(completed)
+    await q.put(("status", completed))
 
     captured = {}
     with patch("app.api.routes_jobs.EventSourceResponse", _fake_esr(captured)), \
          patch("app.api.routes_jobs.job_store") as mock_store, \
-         patch("app.api.routes_jobs.event_manager") as mock_em:
+         patch("app.api.routes_jobs.event_manager") as mock_em, \
+         patch("app.api.routes_jobs.JOB_DATA_ROOT", tmp_path):
         mock_store.get_job.return_value = processing
         mock_em.subscribe = AsyncMock(return_value=q)
         mock_em.unsubscribe = AsyncMock()
@@ -182,19 +183,20 @@ async def test_job_events_generator_yields_initial_then_terminates_on_completed(
     mock_em.unsubscribe.assert_called_once_with("j1", q)
 
 
-async def test_job_events_generator_terminates_on_failed_status():
+async def test_job_events_generator_terminates_on_failed_status(tmp_path):
     from app.api.routes_jobs import job_events
 
     job = _make_job("j1", "processing")
     failed = _make_job("j1", "failed")
 
     q = asyncio.Queue()
-    await q.put(failed)
+    await q.put(("status", failed))
 
     captured = {}
     with patch("app.api.routes_jobs.EventSourceResponse", _fake_esr(captured)), \
          patch("app.api.routes_jobs.job_store") as mock_store, \
-         patch("app.api.routes_jobs.event_manager") as mock_em:
+         patch("app.api.routes_jobs.event_manager") as mock_em, \
+         patch("app.api.routes_jobs.JOB_DATA_ROOT", tmp_path):
         mock_store.get_job.return_value = job
         mock_em.subscribe = AsyncMock(return_value=q)
         mock_em.unsubscribe = AsyncMock()
@@ -207,7 +209,7 @@ async def test_job_events_generator_terminates_on_failed_status():
     mock_em.unsubscribe.assert_called_once_with("j1", q)
 
 
-async def test_job_events_generator_yields_multiple_updates_before_completed():
+async def test_job_events_generator_yields_multiple_updates_before_completed(tmp_path):
     from app.api.routes_jobs import job_events
 
     job = _make_job("j1", "processing")
@@ -215,13 +217,14 @@ async def test_job_events_generator_yields_multiple_updates_before_completed():
     completed = _make_job("j1", "completed")
 
     q = asyncio.Queue()
-    await q.put(mid)
-    await q.put(completed)
+    await q.put(("status", mid))
+    await q.put(("status", completed))
 
     captured = {}
     with patch("app.api.routes_jobs.EventSourceResponse", _fake_esr(captured)), \
          patch("app.api.routes_jobs.job_store") as mock_store, \
-         patch("app.api.routes_jobs.event_manager") as mock_em:
+         patch("app.api.routes_jobs.event_manager") as mock_em, \
+         patch("app.api.routes_jobs.JOB_DATA_ROOT", tmp_path):
         mock_store.get_job.return_value = job
         mock_em.subscribe = AsyncMock(return_value=q)
         mock_em.unsubscribe = AsyncMock()
@@ -234,7 +237,7 @@ async def test_job_events_generator_yields_multiple_updates_before_completed():
     assert "completed" in events[2]["data"]
 
 
-async def test_job_events_generator_handles_cancelled_error():
+async def test_job_events_generator_handles_cancelled_error(tmp_path):
     from app.api.routes_jobs import job_events
 
     job = _make_job("j1", "processing")
@@ -248,7 +251,8 @@ async def test_job_events_generator_handles_cancelled_error():
     captured = {}
     with patch("app.api.routes_jobs.EventSourceResponse", _fake_esr(captured)), \
          patch("app.api.routes_jobs.job_store") as mock_store, \
-         patch("app.api.routes_jobs.event_manager") as mock_em:
+         patch("app.api.routes_jobs.event_manager") as mock_em, \
+         patch("app.api.routes_jobs.JOB_DATA_ROOT", tmp_path):
         mock_store.get_job.return_value = job
         mock_em.subscribe = AsyncMock(return_value=q)
         mock_em.unsubscribe = AsyncMock()
@@ -261,6 +265,70 @@ async def test_job_events_generator_handles_cancelled_error():
     assert events[0]["event"] == "status"
     # unsubscribe called from both the except block and the finally block
     assert mock_em.unsubscribe.call_count == 2
+
+
+async def test_job_events_sends_initial_log_contents(tmp_path):
+    from app.api.routes_jobs import job_events
+
+    job = _make_job("j1", "processing")
+    completed = _make_job("j1", "completed")
+
+    # Write a log file
+    logs_dir = tmp_path / "logs"
+    logs_dir.mkdir()
+    (logs_dir / "j1.log").write_text("[2026-03-03T12:00:00.000] first line\n[2026-03-03T12:00:01.000] second line\n")
+
+    q = asyncio.Queue()
+    await q.put(("status", completed))
+
+    captured = {}
+    with patch("app.api.routes_jobs.EventSourceResponse", _fake_esr(captured)), \
+         patch("app.api.routes_jobs.job_store") as mock_store, \
+         patch("app.api.routes_jobs.event_manager") as mock_em, \
+         patch("app.api.routes_jobs.JOB_DATA_ROOT", tmp_path):
+        mock_store.get_job.return_value = job
+        mock_em.subscribe = AsyncMock(return_value=q)
+        mock_em.unsubscribe = AsyncMock()
+
+        await job_events("j1")
+        events = await _drain(captured["gen"])
+
+    # initial status + initial log + completed status
+    assert len(events) == 3
+    assert events[0]["event"] == "status"
+    assert events[1]["event"] == "log"
+    log_lines = json.loads(events[1]["data"])
+    assert len(log_lines) == 2
+    assert "first line" in log_lines[0]
+    assert events[2]["event"] == "status"
+
+
+async def test_job_events_yields_log_events_from_queue(tmp_path):
+    from app.api.routes_jobs import job_events
+
+    job = _make_job("j1", "processing")
+    completed = _make_job("j1", "completed")
+
+    q = asyncio.Queue()
+    await q.put(("log", ["new log line"]))
+    await q.put(("status", completed))
+
+    captured = {}
+    with patch("app.api.routes_jobs.EventSourceResponse", _fake_esr(captured)), \
+         patch("app.api.routes_jobs.job_store") as mock_store, \
+         patch("app.api.routes_jobs.event_manager") as mock_em, \
+         patch("app.api.routes_jobs.JOB_DATA_ROOT", tmp_path):
+        mock_store.get_job.return_value = job
+        mock_em.subscribe = AsyncMock(return_value=q)
+        mock_em.unsubscribe = AsyncMock()
+
+        await job_events("j1")
+        events = await _drain(captured["gen"])
+
+    # initial status + log + completed status
+    assert len(events) == 3
+    assert events[1]["event"] == "log"
+    assert json.loads(events[1]["data"]) == ["new log line"]
 
 
 # --- GET /api/jobs/events  SSE generator ---
