@@ -1,6 +1,6 @@
 # Running Tests
 
-## All tests (backend + worker)
+## All tests (backend + worker + frontend)
 
 ```bat
 run_tests

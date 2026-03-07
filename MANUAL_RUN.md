@@ -67,7 +67,7 @@ This is the FastAPI server that the frontend communicates with.
     set OUTPUT_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\output
     set JOB_DATA_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\job-data
     
-    uvicorn app.main:app --reload --port 8000
+    python -m uvicorn --app-dir src app.main:app --port 8000 --reload
     ```
 
 ## Component 3: Frontend

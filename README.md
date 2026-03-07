@@ -9,7 +9,7 @@ A convenience script `run_all.bat` is also provided.
 
 ## Running with Docker
 
-## 🚀 Quick Start
+### Quick Start
 
 1. **Install Docker Desktop** (Windows/Mac) or Docker Engine (Linux).
 2. **Setup Folders**: Create `mnt/input` and `mnt/output` directories in the project root (or map your own in `docker-compose.yml`).

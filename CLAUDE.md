@@ -1,9 +1,14 @@
 # CLAUDE.md
 
-Do not run "npm run build" in any directory. This is dev mode with hot reload.
+## Rules
 
-Never go into node_modules directory.
+- Do NOT run `npm run build` in any directory: dev environment, hot reload.
+- Never read files inside `node_modules/`.
+- Ignore tests unless explicitly asked to run or modify.
+- Use Windows PowerShell.
 
-Ignore tests unless explicitly asked to.
+## Project Overview
+LAN video library manager. Services: `frontend/` (Vue 3+TS+Vite+PrimeVue 4), `backend/` (FastAPI:8000), `worker/` (Python+FFmpeg), `mnt/` (shared volumes).
 
-Use Windows PowerShell for terminal commands.
+## Docs
+`MANUAL_RUN.md`, `API.md`, `TESTS.md`
