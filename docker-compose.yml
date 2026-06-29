@@ -7,7 +7,7 @@ services:
       - ./backend/src:/app/src
       - ./mnt/input:/media/input:ro
       - ./mnt/output:/media/output:rw
-      - job-data:/job-data
+      - ./mnt/job-data:/job-data:rw
     environment:
       - INPUT_ROOT=/media/input
       - OUTPUT_ROOT=/media/output
@@ -21,7 +21,7 @@ services:
       - ./worker/src:/app/src
       - ./mnt/input:/media/input:ro
       - ./mnt/output:/media/output:rw
-      - job-data:/job-data
+      - ./mnt/job-data:/job-data:rw
     environment:
       - INPUT_ROOT=/media/input
       - OUTPUT_ROOT=/media/output
@@ -36,8 +36,5 @@ services:
     environment:
       - VITE_API_URL=http://localhost:8000/api
       - VITE_MEDIA_TYPES=tv show,movies
-
-volumes:
-  job-data:
 
 

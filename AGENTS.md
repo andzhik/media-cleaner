@@ -1,9 +1,64 @@
-# AGENTS.md
+# Video Cleaner Web Agent Guide
 
-Do not attenpt to run "npm run build" in any directory. This is dev mode with hot reload.
+## Scope
 
-Never go into node_modules directory.
+LAN-only video cleanup app:
 
-Ignore tests unless explicitly asked to.
+- `frontend/`: Vue 3, TypeScript, Vite, PrimeVue.
+- `backend/`: FastAPI API on `:8000`.
+- `worker/`: Python FFmpeg job runner.
 
-Use Windows PowerShell for terminal commands.
+Shared roots are `mnt/input`, `mnt/output`, and `mnt/job-data`.
+
+## Rules
+
+- Use Windows PowerShell.
+- Do not run `npm run build` unless explicitly asked.
+- Do not read or search `node_modules/`.
+- Do not run tests unless asked or needed to verify a risky change.
+- Keep media paths confined to configured roots.
+- Prefer small local changes over new abstractions.
+
+## Work Map
+
+- UI and client state: `frontend/src/`.
+- API and backend domain logic: `backend/src/app/`.
+- Job execution and FFmpeg commands: `worker/src/worker/`.
+
+If a name is unclear, search with PowerShell tools such as `Get-ChildItem` and `Select-String`. Rename only when the change improves code you are already touching.
+
+## Commands
+
+Run all services:
+
+```powershell
+.\run_all.bat
+```
+
+Docker:
+
+```powershell
+docker compose up --build
+```
+
+Lint:
+
+```powershell
+.\run_lint.bat
+```
+
+Tests:
+
+```powershell
+.\run_tests.bat
+```
+
+Use `MANUAL_RUN.md`, `TESTS.md`, `API.md`, and `frontend/UI.md` for details instead of duplicating them here.
+
+## Notes
+
+Backend changes should preserve the API contract in `API.md`.
+
+Worker changes should preserve requested audio/subtitle selections exactly.
+
+Frontend changes should stay compact and task-focused; this is a media management tool, not a landing page.

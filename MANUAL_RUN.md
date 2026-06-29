@@ -1,4 +1,4 @@
-# Manual Run Guide (Windows CMD)
+# Manual Run Guide (Windows PowerShell)
 
 This guide explains how to run the Video Cleaner Web application components manually on Windows without using Docker.
 
@@ -30,20 +30,20 @@ The system requires three directories to function. You can use the existing `mnt
 
 This component processes the video files using FFmpeg.
 
-1.  Open a new Command Prompt (cmd).
+1.  Open a new PowerShell window.
 2.  Navigate to the `worker` directory:
-    ```cmd
-    cd c:\Users\Andrei\Documents\Projects\video-cleaner-web\worker
+    ```powershell
+    Set-Location C:\Users\Andrei\Documents\Projects\video-cleaner-web\worker
     ```
 3.  Install the package in editable mode (run once):
-    ```cmd
+    ```powershell
     pip install -e .
     ```
 4.  Set environment variables and run:
-    ```cmd
-    set INPUT_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\input
-    set OUTPUT_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\output
-    set JOB_DATA_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\job-data
+    ```powershell
+    $env:INPUT_ROOT = 'C:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\input'
+    $env:OUTPUT_ROOT = 'C:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\output'
+    $env:JOB_DATA_ROOT = 'C:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\job-data'
     
     python -m worker.main
     ```
@@ -52,20 +52,20 @@ This component processes the video files using FFmpeg.
 
 This is the FastAPI server that the frontend communicates with.
 
-1.  Open a new Command Prompt (cmd).
+1.  Open a new PowerShell window.
 2.  Navigate to the `backend` directory:
-    ```cmd
-    cd c:\Users\Andrei\Documents\Projects\video-cleaner-web\backend
+    ```powershell
+    Set-Location C:\Users\Andrei\Documents\Projects\video-cleaner-web\backend
     ```
 3.  Install the package in editable mode (run once):
-    ```cmd
+    ```powershell
     pip install -e .
     ```
 4.  Set environment variables and run:
-    ```cmd
-    set INPUT_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\input
-    set OUTPUT_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\output
-    set JOB_DATA_ROOT=c:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\job-data
+    ```powershell
+    $env:INPUT_ROOT = 'C:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\input'
+    $env:OUTPUT_ROOT = 'C:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\output'
+    $env:JOB_DATA_ROOT = 'C:\Users\Andrei\Documents\Projects\video-cleaner-web\mnt\job-data'
     
     python -m uvicorn --app-dir src app.main:app --port 8000 --reload
     ```
@@ -74,10 +74,10 @@ This is the FastAPI server that the frontend communicates with.
 
 The web interface.
 
-1.  Open a new Command Prompt (cmd).
+1.  Open a new PowerShell window.
 2.  Navigate to the `frontend` directory:
-    ```cmd
-    cd c:\Users\Andrei\Documents\Projects\video-cleaner-web\frontend
+    ```powershell
+    Set-Location C:\Users\Andrei\Documents\Projects\video-cleaner-web\frontend
     ```
 3.  Install dependencies (run once):
     ```cmd
