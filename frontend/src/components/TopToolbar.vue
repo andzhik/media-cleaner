@@ -6,6 +6,7 @@ import InputText from 'primevue/inputtext';
 import RadioButton from 'primevue/radiobutton';
 import { mediaStore } from '../stores/mediaStore';
 import { jobStore } from '../stores/jobStore';
+import type { FileSelection, ProcessRequest } from '../types';
 
 const envMediaTypes = (import.meta.env.VITE_MEDIA_TYPES as string) || 'tv show,movies';
 const availableMediaTypes = envMediaTypes.split(',').map(s => s.trim());
@@ -46,7 +47,7 @@ const toggleBatch = (lang: string, value: boolean) => {
 const onProcess = async () => {
     if (!outputDir.value) return;
     
-    const selections = mediaStore.files
+    const selections: FileSelection[] = mediaStore.files
         .filter(f => f.includeFile)
         .map(f => ({
             rel_path: f.rel_path,
@@ -54,7 +55,7 @@ const onProcess = async () => {
             subtitle_stream_ids: f.selectedSubs
         }));
 
-    const payload = {
+    const payload: ProcessRequest = {
         dir: mediaStore.currentDir,
         output_dir: outputDir.value,
         audio_languages: mediaStore.selectedLanguages,

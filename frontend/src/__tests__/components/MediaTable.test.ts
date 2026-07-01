@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import MediaTable from '../../components/MediaTable.vue'
 import { mediaStore } from '../../stores/mediaStore'
+import type { MediaFile, Stream } from '../../types'
 
 vi.mock('../../stores/mediaStore', () => ({
     mediaStore: {
@@ -59,15 +60,23 @@ function mountSmartTable() {
 }
 
 // ── Fixtures ───────────────────────────────────────────────────────────────
-function makeFile(overrides: Partial<any> = {}) {
+function audioStream(overrides: Partial<Stream> = {}): Stream {
+    return { id: 1, language: 'en', title: null, codec_type: 'audio', ...overrides }
+}
+
+function subtitleStream(overrides: Partial<Stream> = {}): Stream {
+    return { id: 10, language: 'unknown', title: 'English SDH', codec_type: 'subtitle', ...overrides }
+}
+
+function makeFile(overrides: Partial<MediaFile> = {}): MediaFile {
     return {
         name: 'movie.mkv',
         rel_path: 'movie.mkv',
         includeFile: true,
         selectedAudio: [1],
         selectedSubs: [10],
-        audio_streams: [{ id: 1, language: 'en', title: null }],
-        subtitle_streams: [{ id: 10, language: 'unknown', title: 'English SDH' }],
+        audio_streams: [audioStream()],
+        subtitle_streams: [subtitleStream()],
         ...overrides,
     }
 }
@@ -136,7 +145,7 @@ describe('MediaTable - column content', () => {
 
     it('formats "unknown" language as "UNK"', () => {
         mediaStore.files = [makeFile({
-            audio_streams: [{ id: 1, language: 'unknown', title: null }],
+            audio_streams: [audioStream({ language: 'unknown' })],
             subtitle_streams: [],
         })]
         const wrapper = mountSmartTable()
@@ -145,8 +154,8 @@ describe('MediaTable - column content', () => {
 
     it('formats known language codes as uppercase', () => {
         mediaStore.files = [makeFile({
-            audio_streams: [{ id: 1, language: 'en', title: null }],
-            subtitle_streams: [{ id: 10, language: 'fr', title: null }],
+            audio_streams: [audioStream({ language: 'en' })],
+            subtitle_streams: [subtitleStream({ language: 'fr', title: null })],
         })]
         const wrapper = mountSmartTable()
         expect(wrapper.text()).toContain('EN')
@@ -156,8 +165,8 @@ describe('MediaTable - column content', () => {
     it('renders one audio checkbox per audio stream', () => {
         mediaStore.files = [makeFile({
             audio_streams: [
-                { id: 1, language: 'en', title: null },
-                { id: 2, language: 'fr', title: null },
+                audioStream({ id: 1, language: 'en' }),
+                audioStream({ id: 2, language: 'fr' }),
             ],
             subtitle_streams: [],
         })]
@@ -171,8 +180,8 @@ describe('MediaTable - column content', () => {
         mediaStore.files = [makeFile({
             audio_streams: [],
             subtitle_streams: [
-                { id: 10, language: 'en', title: null },
-                { id: 11, language: 'fr', title: null },
+                subtitleStream({ id: 10, language: 'en', title: null }),
+                subtitleStream({ id: 11, language: 'fr', title: null }),
             ],
         })]
         const wrapper = mountSmartTable()
@@ -182,7 +191,7 @@ describe('MediaTable - column content', () => {
 
     it('shows audio stream title when present', () => {
         mediaStore.files = [makeFile({
-            audio_streams: [{ id: 1, language: 'en', title: 'Director Commentary' }],
+            audio_streams: [audioStream({ title: 'Director Commentary' })],
             subtitle_streams: [],
         })]
         const wrapper = mountSmartTable()
@@ -191,7 +200,7 @@ describe('MediaTable - column content', () => {
 
     it('hides audio stream title when absent', () => {
         mediaStore.files = [makeFile({
-            audio_streams: [{ id: 1, language: 'en', title: null }],
+            audio_streams: [audioStream()],
             subtitle_streams: [],
         })]
         const wrapper = mountSmartTable()
@@ -202,7 +211,7 @@ describe('MediaTable - column content', () => {
     it('shows subtitle stream title when present', () => {
         mediaStore.files = [makeFile({
             audio_streams: [],
-            subtitle_streams: [{ id: 10, language: 'en', title: 'English SDH' }],
+            subtitle_streams: [subtitleStream({ language: 'en', title: 'English SDH' })],
         })]
         const wrapper = mountSmartTable()
         expect(wrapper.text()).toContain('English SDH')

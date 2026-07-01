@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import { fetchTree, fetchList } from '../api/client';
-import type { MediaNode, MediaFile, Stream } from '../types';
+import type { MediaNode, MediaFile } from '../types';
 
 export const mediaStore = reactive({
     tree: null as MediaNode | null,
@@ -49,14 +49,14 @@ export const mediaStore = reactive({
             const data = await fetchList(dir);
 
             // Enriched files with selection state
-            this.files = (data.files as any[]).map((f): MediaFile => ({
+            this.files = data.files.map((f): MediaFile => ({
                 ...f,
                 includeFile: true,
-                selectedAudio: f.audio_streams.map((s: Stream) => s.id),
-                selectedSubs: f.subtitle_streams.map((s: Stream) => s.id)
+                selectedAudio: f.audio_streams.map(s => s.id),
+                selectedSubs: f.subtitle_streams.map(s => s.id)
             }));
-            this.languages = data.languages as string[];
-            this.selectedLanguages = [...(data.languages as string[])];
+            this.languages = data.languages;
+            this.selectedLanguages = [...data.languages];
         } catch (e: unknown) {
             this.error = (e as Error).message;
         } finally {

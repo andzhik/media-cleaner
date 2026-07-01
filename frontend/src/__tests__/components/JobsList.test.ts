@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import JobsList from '../../components/JobsList.vue'
 import { jobsListStore } from '../../stores/jobsListStore'
-import type { ActiveJob } from '../../stores/jobsListStore'
+import type { ActiveJob } from '../../types'
 
 vi.mock('../../api/client', () => ({
     cancelJob: vi.fn(),
@@ -75,7 +75,7 @@ describe('JobsList', () => {
     })
 
     it('calls cancelJob when cancel button is clicked', async () => {
-        vi.mocked(cancelJob).mockResolvedValueOnce({})
+        vi.mocked(cancelJob).mockResolvedValueOnce({ ok: true })
         jobsListStore.jobs = [makeJob({ job_id: 'job-to-cancel', status: 'pending' })]
 
         const wrapper = mount(JobsList)

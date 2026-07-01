@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { jobStore } from '../../stores/jobStore'
 import { MockEventSource } from '../setup'
+import type { ProcessRequest } from '../../types'
 
 vi.mock('../../api/client', () => ({
     startProcess: vi.fn(),
@@ -15,6 +16,16 @@ import { startProcess } from '../../api/client'
 import { jobsListStore } from '../../stores/jobsListStore'
 
 const mockStartProcess = vi.mocked(startProcess)
+
+function makeProcessRequest(dir = '/input'): ProcessRequest {
+    return {
+        dir,
+        output_dir: '/output',
+        audio_languages: [],
+        subtitle_languages: [],
+        selections: [],
+    }
+}
 
 function resetStore() {
     jobStore.eventSource?.close()
@@ -40,7 +51,7 @@ describe('startJob', () => {
     it('resets state and starts a new job when no job is active', async () => {
         mockStartProcess.mockResolvedValueOnce({ jobId: 'job-1' })
 
-        await jobStore.startJob({ dir: '/input' })
+        await jobStore.startJob(makeProcessRequest())
 
         expect(jobStore.activeJobId).toBe('job-1')
         expect(jobStore.status).toBe('starting')
@@ -51,7 +62,7 @@ describe('startJob', () => {
     it('sets error when startProcess throws', async () => {
         mockStartProcess.mockRejectedValueOnce(new Error('server error'))
 
-        await jobStore.startJob({ dir: '/input' })
+        await jobStore.startJob(makeProcessRequest())
 
         expect(jobStore.error).toBe('server error')
         expect(jobStore.activeJobId).toBeNull()
@@ -66,7 +77,7 @@ describe('startJob', () => {
 
         mockStartProcess.mockResolvedValueOnce({ jobId: 'job-2' })
 
-        await jobStore.startJob({ dir: '/input2' })
+        await jobStore.startJob(makeProcessRequest('/input2'))
 
         // Should keep watching job-1
         expect(jobStore.activeJobId).toBe('job-1')
@@ -82,7 +93,7 @@ describe('startJob', () => {
 
         mockStartProcess.mockResolvedValueOnce({ jobId: 'job-2' })
 
-        await jobStore.startJob({ dir: '/input2' })
+        await jobStore.startJob(makeProcessRequest('/input2'))
 
         expect(jobStore.activeJobId).toBe('job-2')
         expect(jobStore.status).toBe('starting')
@@ -95,7 +106,7 @@ describe('startJob', () => {
 
         mockStartProcess.mockResolvedValueOnce({ jobId: 'job-2' })
 
-        await jobStore.startJob({ dir: '/input2' })
+        await jobStore.startJob(makeProcessRequest('/input2'))
 
         expect(jobStore.activeJobId).toBe('job-2')
         expect(jobStore.status).toBe('starting')

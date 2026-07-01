@@ -13,9 +13,6 @@ Shared roots are `mnt/input`, `mnt/output`, and `mnt/job-data`.
 ## Rules
 
 - Use Windows PowerShell.
-- Do not run `npm run build` unless explicitly asked.
-- Do not read or search `node_modules/`.
-- Do not run tests unless asked or needed to verify a risky change.
 - Keep media paths confined to configured roots.
 - Prefer small local changes over new abstractions.
 

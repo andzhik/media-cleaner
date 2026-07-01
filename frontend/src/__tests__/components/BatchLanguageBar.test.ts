@@ -58,7 +58,7 @@ describe('BatchLanguageBar', () => {
         const wrapper = mountBar()
         const checkboxes = wrapper.findAll('input[type="checkbox"]')
 
-        checkboxes[0].element.checked = true
+        ;(checkboxes[0].element as HTMLInputElement).checked = true
         await checkboxes[0].trigger('change')
 
         expect(mediaStore.toggleLanguage).toHaveBeenCalledWith('en', 'audio', true)
@@ -69,7 +69,7 @@ describe('BatchLanguageBar', () => {
         const wrapper = mountBar()
         const checkboxes = wrapper.findAll('input[type="checkbox"]')
 
-        checkboxes[0].element.checked = false
+        ;(checkboxes[0].element as HTMLInputElement).checked = false
         await checkboxes[0].trigger('change')
 
         expect(mediaStore.toggleLanguage).toHaveBeenCalledWith('en', 'audio', false)
@@ -80,7 +80,7 @@ describe('BatchLanguageBar', () => {
         const wrapper = mountBar()
         const checkboxes = wrapper.findAll('input[type="checkbox"]')
         // index 0 = audio 'en', index 1 = subtitle 'en'
-        checkboxes[1].element.checked = true
+        ;(checkboxes[1].element as HTMLInputElement).checked = true
         await checkboxes[1].trigger('change')
 
         expect(mediaStore.toggleLanguage).toHaveBeenCalledWith('en', 'subtitle', true)
@@ -91,7 +91,7 @@ describe('BatchLanguageBar', () => {
         const wrapper = mountBar()
         const checkboxes = wrapper.findAll('input[type="checkbox"]')
         // Order: audio-en, audio-fr, subtitle-en, subtitle-fr
-        checkboxes[1].element.checked = true
+        ;(checkboxes[1].element as HTMLInputElement).checked = true
         await checkboxes[1].trigger('change')
 
         expect(mediaStore.toggleLanguage).toHaveBeenCalledWith('fr', 'audio', true)

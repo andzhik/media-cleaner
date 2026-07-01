@@ -119,7 +119,6 @@ Retrieves the current status of a specific job.
   "status": "processing",
   "overall_percent": 45.5,
   "current_file": "movie.mkv",
-  "logs": ["Started processing movie.mkv..."],
   "dir": "/Movies",
   "first_file": "/Movies/movie.mkv"
 }
@@ -144,6 +143,10 @@ Subscribe to real-time updates for a specific job using Server-Sent Events.
 - **Response**: **text/event-stream**
   - Event: `status`
   - Data: JSON string of `JobStatus`
+  - Event: `log`
+  - Data: JSON array of log lines
+
+Job logs are streamed through `log` events only. They are not included in the REST `JobStatus` response.
 
 #### Global Jobs List Events (SSE)
 Subscribe to real-time updates for all active jobs (pending + processing).
@@ -192,6 +195,5 @@ Subscribe to real-time updates for all active jobs (pending + processing).
 - `status`: string ('pending', 'processing', 'completed', 'failed')
 - `overall_percent`: float
 - `current_file`: string (optional)
-- `logs`: List[string]
 - `dir`: string (source directory of the job, empty string if not set)
 - `first_file`: string (optional, first file in the job)

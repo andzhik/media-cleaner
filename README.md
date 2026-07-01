@@ -76,13 +76,13 @@ See [API.md](API.md) for endpoint details. The main flow is:
 3. `POST /api/process` to queue a job with selected streams.
 4. `GET /api/jobs/{job_id}/events` to stream live status and logs.
 
-## Demo Media
+## Sample Media
 
-For demos and smoke tests, the app works well with small generated fixtures or openly licensed sample films. Public sources include Blender Open Movie projects such as [Big Buck Bunny](https://peach.blender.org/), [Sintel](https://durian.blender.org/), and [Tears of Steel](https://mango.blender.org/).
+For local validation and smoke tests, the app works well with small generated fixtures or openly licensed sample films. Public sources include Blender Open Movie projects such as [Big Buck Bunny](https://peach.blender.org/), [Sintel](https://durian.blender.org/), and [Tears of Steel](https://mango.blender.org/).
 
-Example demo layout:
+Example media layout:
 
-- `mnt/input/movies/demo-movie-01.mkv`
+- `mnt/input/movies/sample-movie-01.mkv`
 - `mnt/input/tv/sample-show/s01e01.mkv`
 - `mnt/output/`
 
@@ -102,3 +102,10 @@ Do not expose the service directly to the internet.
 - `backend/`: FastAPI API for file exploration, stream probing, and job management.
 - `worker/`: Python FFmpeg job runner.
 - `mnt/`: Shared local input, output, and job-data folders.
+
+## Planned Work
+
+- Tighten path-confinement checks across API and worker boundaries.
+- Improve frontend API error details for validation and job creation failures.
+- Keep backend and worker video-extension handling synchronized.
+- Add a lightweight smoke test around generated media fixtures.

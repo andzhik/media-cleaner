@@ -1,14 +1,6 @@
 import { reactive } from 'vue';
 import { getJobsListEventsUrl } from '../api/client';
-
-export interface ActiveJob {
-  job_id: string;
-  dir: string;
-  status: 'pending' | 'processing';
-  overall_percent: number;
-  current_file: string | null;
-  first_file: string | null;
-}
+import type { ActiveJob } from '../types';
 
 export const jobsListStore = reactive({
   jobs: [] as ActiveJob[],

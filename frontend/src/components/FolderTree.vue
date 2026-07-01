@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import Tree from 'primevue/tree';
 import type { TreeNode } from 'primevue/treenode';
 import { mediaStore } from '../stores/mediaStore';
+import type { MediaNode } from '../types';
 
 onMounted(() => {
     mediaStore.loadTree();
 });
 
+const treeValue = computed<TreeNode[]>(() => (
+    mediaStore.tree ? [mediaStore.tree as unknown as TreeNode] : []
+));
+
 const onNodeSelect = (node: TreeNode) => {
-    // node from PrimeVue's tree component
-    // we use any here carefully if needed or just cast property
-    const relPath = (node as any).rel_path;
+    const relPath = (node as TreeNode & Partial<MediaNode>).rel_path;
     if (typeof relPath === 'string') {
         mediaStore.loadDirectory(relPath);
     }
@@ -26,8 +29,8 @@ const onNodeExpand = () => {
 <template>
   <div class="h-full overflow-auto">
     <Tree 
-      v-model:expanded-keys="mediaStore.expandedKeys" 
-      :value="mediaStore.tree ? [mediaStore.tree] : []"
+      v-model:expanded-keys="mediaStore.expandedKeys"
+      :value="treeValue"
       selection-mode="single"
       class="w-full"
       @node-select="onNodeSelect"

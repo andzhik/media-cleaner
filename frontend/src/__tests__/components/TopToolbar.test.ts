@@ -94,6 +94,7 @@ describe('TopToolbar', () => {
         mediaStore.files = [
             {
                 rel_path: 'a.mkv',
+                name: 'a.mkv',
                 includeFile: true,
                 selectedAudio: [1],
                 selectedSubs: [10],
@@ -102,6 +103,7 @@ describe('TopToolbar', () => {
             },
             {
                 rel_path: 'b.mkv',
+                name: 'b.mkv',
                 includeFile: false,
                 selectedAudio: [],
                 selectedSubs: [],

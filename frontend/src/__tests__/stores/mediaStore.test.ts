@@ -33,12 +33,16 @@ const sampleTree = {
 }
 
 const sampleListData = {
+    dir: '/',
     files: [
         {
             rel_path: 'movie.mkv',
             name: 'movie.mkv',
-            audio_streams: [{ id: 1, language: 'en' }, { id: 2, language: 'fr' }],
-            subtitle_streams: [{ id: 10, language: 'en' }],
+            audio_streams: [
+                { id: 1, language: 'en', codec_type: 'audio' as const },
+                { id: 2, language: 'fr', codec_type: 'audio' as const },
+            ],
+            subtitle_streams: [{ id: 10, language: 'en', codec_type: 'subtitle' as const }],
         },
     ],
     languages: ['en', 'fr'],
@@ -53,7 +57,7 @@ beforeEach(() => {
 describe('loadTree', () => {
     it('sets tree and expands all nodes', async () => {
         mockFetchTree.mockResolvedValueOnce(sampleTree)
-        mockFetchList.mockResolvedValueOnce({ files: [], languages: [] })
+        mockFetchList.mockResolvedValueOnce({ dir: '/', files: [], languages: [] })
 
         await mediaStore.loadTree()
 
@@ -82,7 +86,7 @@ describe('loadTree', () => {
 
     it('clears loading on completion', async () => {
         mockFetchTree.mockResolvedValueOnce(sampleTree)
-        mockFetchList.mockResolvedValueOnce({ files: [], languages: [] })
+        mockFetchList.mockResolvedValueOnce({ dir: '/', files: [], languages: [] })
 
         await mediaStore.loadTree()
 

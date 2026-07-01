@@ -8,6 +8,7 @@ import {
     getJobsListEventsUrl,
     cancelJob,
 } from '../../api/client'
+import type { ProcessRequest } from '../../types'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -21,6 +22,14 @@ function mockFail() {
 }
 
 beforeEach(() => mockFetch.mockReset())
+
+const processRequest: ProcessRequest = {
+    dir: '/input',
+    output_dir: '/output',
+    audio_languages: [],
+    subtitle_languages: [],
+    selections: [],
+}
 
 describe('fetchTree', () => {
     it('resolves with json on ok response', async () => {
@@ -52,23 +61,22 @@ describe('fetchList', () => {
 
 describe('startProcess', () => {
     it('sends POST with json body and returns json', async () => {
-        const payload = { dir: '/input', output_dir: '/output' }
         mockFetch.mockReturnValueOnce(mockOk({ jobId: 'abc' }))
-        const result = await startProcess(payload)
+        const result = await startProcess(processRequest)
         expect(result).toEqual({ jobId: 'abc' })
         expect(mockFetch).toHaveBeenCalledWith(
             expect.stringContaining('/process'),
             expect.objectContaining({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(processRequest),
             })
         )
     })
 
     it('throws on non-ok response', async () => {
         mockFetch.mockReturnValueOnce(mockFail())
-        await expect(startProcess({})).rejects.toThrow('Failed to start process')
+        await expect(startProcess(processRequest)).rejects.toThrow('Failed to start process')
     })
 })
 

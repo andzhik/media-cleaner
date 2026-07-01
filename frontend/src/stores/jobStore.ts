@@ -1,17 +1,20 @@
 import { reactive } from 'vue';
 import { startProcess, getJobEventsUrl } from '../api/client';
 import { jobsListStore } from './jobsListStore';
+import type { JobStatus, JobStatusValue, ProcessRequest } from '../types';
+
+type JobStoreStatus = JobStatusValue | 'starting';
 
 export const jobStore = reactive({
     activeJobId: null as string | null,
-    status: null as string | null,
+    status: null as JobStoreStatus | null,
     progress: 0,
     currentFile: null as string | null,
     logs: [] as string[],
     error: null as string | null,
     eventSource: null as EventSource | null,
 
-    async startJob(payload: any) {
+    async startJob(payload: ProcessRequest) {
         try {
             this.error = null;
             const res = await startProcess(payload);
@@ -23,8 +26,8 @@ export const jobStore = reactive({
                 this.activeJobId = res.jobId;
                 this.connectEvents(res.jobId);
             }
-        } catch (e: any) {
-            this.error = e.message;
+        } catch (e: unknown) {
+            this.error = e instanceof Error ? e.message : 'Failed to start job';
         }
     },
 
@@ -35,10 +38,10 @@ export const jobStore = reactive({
         this.eventSource = new EventSource(url);
 
         this.eventSource.addEventListener('status', (event: MessageEvent) => {
-            const data = JSON.parse(event.data);
+            const data = JSON.parse(event.data) as JobStatus;
             this.status = data.status;
             this.progress = data.overall_percent;
-            this.currentFile = data.current_file;
+            this.currentFile = data.current_file ?? null;
 
             if (data.status === 'completed' || data.status === 'failed') {
                 this.eventSource?.close();
