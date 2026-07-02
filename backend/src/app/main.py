@@ -35,7 +35,7 @@ async def _poll_status_files():
                         seen_mtimes[path.name] = mtime
                         changed = True
                         try:
-                            with open(path, "r") as f:
+                            with open(path, "r", encoding="utf-8") as f:
                                 data = json.load(f)
                             job = JobStatus(**data)
                             await event_manager.emit_update(job)

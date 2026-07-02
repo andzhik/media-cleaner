@@ -47,12 +47,39 @@ async def test_enqueue_creates_pending_file(queue, mock_job_store, tmp_media):
     pending_file = tmp_media / "job-data" / "pending" / f"{job_id}.json"
     assert pending_file.exists()
 
-    with open(pending_file) as f:
+    with open(pending_file, encoding="utf-8") as f:
         payload = json.load(f)
 
     assert payload["job_id"] == job_id
     assert payload["output_dir"] == "Output"
     assert payload["audio_languages"] == ["eng"]
+
+
+async def test_enqueue_preserves_unicode_selection_path(queue, mock_job_store, tmp_media):
+    path = "/Silo.S01.720p.WEBRip.Невафильм/Silo.S01E01.720p.NF.mkv"
+    request = ProcessRequest(
+        output_dir="Output",
+        audio_languages=["eng"],
+        subtitle_languages=["eng"],
+        selections=[
+            {
+                "rel_path": path,
+                "audio_stream_ids": [1],
+                "subtitle_stream_ids": [2],
+            }
+        ],
+    )
+
+    job_id = await queue.enqueue(request)
+
+    saved_job = mock_job_store.save_job.call_args[0][0]
+    assert saved_job.first_file == path
+
+    pending_file = tmp_media / "job-data" / "pending" / f"{job_id}.json"
+    with open(pending_file, encoding="utf-8") as f:
+        payload = json.load(f)
+
+    assert payload["selections"][0]["rel_path"] == path
 
 
 async def test_enqueue_saves_job_with_pending_status(queue, mock_job_store):

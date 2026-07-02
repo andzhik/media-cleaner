@@ -49,7 +49,7 @@ class JobProcessor:
 
         job_data = {}
         try:
-            with open(processing_file, "r") as f:
+            with open(processing_file, "r", encoding="utf-8") as f:
                 job_data = json.load(f)
 
             job_id = job_data["job_id"]
@@ -155,8 +155,8 @@ class JobProcessor:
         
         # Simple atomic write
         tmp_file = status_file.with_suffix(".tmp")
-        with open(tmp_file, "w") as f:
-            json.dump(data, f)
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
         
         # Retry replacing the file to handle Windows file locking issues
         # (e.g. if the API is currently reading the file)

@@ -11,8 +11,8 @@ def job_store(tmp_media):
     return store
 
 
-def _make_job(job_id="job-1", status="pending"):
-    return JobStatus(job_id=job_id, status=status, overall_percent=0.0)
+def _make_job(job_id="job-1", status="pending", **kwargs):
+    return JobStatus(job_id=job_id, status=status, overall_percent=0.0, **kwargs)
 
 
 def test_save_job_writes_file(job_store, tmp_media):
@@ -31,6 +31,16 @@ def test_get_job_reads_correct_data(job_store):
     assert retrieved is not None
     assert retrieved.job_id == "get-test"
     assert retrieved.status == "processing"
+
+
+def test_save_job_preserves_unicode_paths(job_store):
+    path = "/Silo.S01.720p.WEBRip.Невафильм/Silo.S01E01.720p.NF.mkv"
+    job = _make_job("unicode-path", first_file=path)
+    job_store.save_job(job)
+
+    retrieved = job_store.get_job("unicode-path")
+    assert retrieved is not None
+    assert retrieved.first_file == path
 
 
 def test_get_nonexistent_job_returns_none(job_store):

@@ -36,8 +36,8 @@ class JobQueue:
         # Write to pending file
         self._ensure_dirs()
         job_file = self.pending_dir / f"{job_id}.json"
-        with open(job_file, "w") as f:
-            json.dump(payload, f)
+        with open(job_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
             
         return job_id
 

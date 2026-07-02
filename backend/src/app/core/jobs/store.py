@@ -14,7 +14,7 @@ class JobStore:
         status_file = self.status_dir / f"{job_id}.json"
         if status_file.exists():
             try:
-                with open(status_file, "r") as f:
+                with open(status_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 return JobStatus(**data)
             except Exception:
@@ -30,7 +30,7 @@ class JobStore:
     def save_job(self, job: JobStatus):
         self.status_dir.mkdir(parents=True, exist_ok=True)
         status_file = self.status_dir / f"{job.job_id}.json"
-        with open(status_file, "w") as f:
+        with open(status_file, "w", encoding="utf-8") as f:
             f.write(job.model_dump_json())
     
     def list_jobs(self) -> List[JobStatus]:
@@ -38,7 +38,7 @@ class JobStore:
         if self.status_dir.exists():
             for f in self.status_dir.glob("*.json"):
                 try:
-                    with open(f, "r") as fp:
+                    with open(f, "r", encoding="utf-8") as fp:
                         jobs.append(JobStatus(**json.load(fp)))
                 except Exception:
                     pass

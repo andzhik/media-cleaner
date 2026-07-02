@@ -15,6 +15,7 @@ Shared roots are `mnt/input`, `mnt/output`, and `mnt/job-data`.
 - Use Windows PowerShell.
 - Keep media paths confined to configured roots.
 - Prefer small local changes over new abstractions.
+- For meaningful changes, propose a commit message
 
 ## Work Map
 
