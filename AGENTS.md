@@ -16,6 +16,7 @@ Shared roots are `mnt/input`, `mnt/output`, and `mnt/job-data`.
 - Keep media paths confined to configured roots.
 - Prefer small local changes over new abstractions.
 - For meaningful changes, propose a commit message
+- Use GitHub CLI (gh) for github interactions
 
 ## Work Map
 
