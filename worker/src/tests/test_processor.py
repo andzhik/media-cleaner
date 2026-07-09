@@ -158,6 +158,124 @@ def test_process_job_skips_missing_input_file(processor):
     assert (processor.completed_dir / "job5.json").exists()
 
 
+def test_process_job_rejects_input_traversal(processor, job_dirs):
+    tmp_root = job_dirs[1].parent
+    outside = tmp_root / "outside.mkv"
+    outside.touch()
+
+    job_file = _write_job(processor.pending_dir, "bad-input-traversal", {"files": ["../outside.mkv"]})
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-input-traversal.json").exists()
+
+
+def test_process_job_rejects_windows_absolute_input_path(processor):
+    job_file = _write_job(
+        processor.pending_dir,
+        "bad-input-absolute",
+        {"files": ["C:/media/outside.mkv"]},
+    )
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-input-absolute.json").exists()
+
+
+def test_process_job_rejects_input_sibling_prefix_escape(processor, job_dirs):
+    _, input_root, _ = job_dirs
+    sibling = input_root.parent / f"{input_root.name}-sibling"
+    sibling.mkdir()
+    (sibling / "movie.mkv").touch()
+
+    job_file = _write_job(
+        processor.pending_dir,
+        "bad-input-sibling",
+        {"files": [f"../{sibling.name}/movie.mkv"]},
+    )
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-input-sibling.json").exists()
+
+
+def test_process_job_rejects_output_traversal(processor, job_dirs):
+    _, input_root, _ = job_dirs
+    (input_root / "video.mkv").touch()
+
+    job_file = _write_job(
+        processor.pending_dir,
+        "bad-output-traversal",
+        {"files": ["/video.mkv"], "output_dir": "../outside-output"},
+    )
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-output-traversal.json").exists()
+    assert not (input_root.parent / "outside-output").exists()
+
+
+def test_process_job_rejects_windows_absolute_output_path(processor, job_dirs):
+    _, input_root, _ = job_dirs
+    (input_root / "video.mkv").touch()
+
+    job_file = _write_job(
+        processor.pending_dir,
+        "bad-output-absolute",
+        {"files": ["/video.mkv"], "output_dir": "C:/media/output"},
+    )
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-output-absolute.json").exists()
+
+
+def test_process_job_rejects_output_sibling_prefix_escape(processor, job_dirs):
+    _, input_root, output_root = job_dirs
+    (input_root / "video.mkv").touch()
+    sibling = output_root.parent / f"{output_root.name}-sibling"
+
+    job_file = _write_job(
+        processor.pending_dir,
+        "bad-output-sibling",
+        {"files": ["/video.mkv"], "output_dir": f"../{sibling.name}"},
+    )
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-output-sibling.json").exists()
+    assert not sibling.exists()
+
+
+def test_process_job_validates_all_inputs_before_ffmpeg(processor, job_dirs):
+    _, input_root, _ = job_dirs
+    (input_root / "safe.mkv").touch()
+
+    job_file = _write_job(
+        processor.pending_dir,
+        "bad-second-input",
+        {"files": ["/safe.mkv", "../outside.mkv"]},
+    )
+
+    with patch("worker.processor.FfmpegRunner") as MockRunner:
+        processor.process_job(job_file)
+
+    MockRunner.return_value.run_ffmpeg.assert_not_called()
+    assert (processor.failed_dir / "bad-second-input.json").exists()
+
+
 # ---------------------------------------------------------------------------
 # process_job — error path
 # ---------------------------------------------------------------------------

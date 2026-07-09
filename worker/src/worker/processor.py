@@ -2,13 +2,57 @@ import json
 import os
 import shutil
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from .ffmpeg_runner import FfmpegRunner
 import time
 
 JOB_DATA_ROOT = Path(os.getenv("JOB_DATA_ROOT", "/job-data"))
 INPUT_ROOT = Path(os.getenv("INPUT_ROOT", "/media/input"))
 OUTPUT_ROOT = Path(os.getenv("OUTPUT_ROOT", "/media/output"))
+
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _resolve_under_root(rel_path: str, root_path: Path, label: str) -> Path:
+    root = root_path.resolve()
+    raw_path = rel_path or ""
+
+    if "\x00" in raw_path:
+        raise ValueError(f"Invalid {label} path")
+
+    windows_path = PureWindowsPath(raw_path)
+    if windows_path.drive:
+        raise ValueError(f"{label} path escapes configured root: {rel_path}")
+
+    clean_rel = raw_path.replace("\\", "/").lstrip("/")
+    if not clean_rel:
+        return root
+
+    resolved = (root / clean_rel).resolve()
+    if not _is_relative_to(resolved, root):
+        raise ValueError(f"{label} path escapes configured root: {rel_path}")
+
+    return resolved
+
+
+def _output_path_for(output_dir: Path, file_rel: str, output_root: Path) -> Path:
+    clean_rel = (file_rel or "").replace("\\", "/").rstrip("/")
+    filename = Path(clean_rel).name
+
+    if filename in {"", ".", ".."}:
+        raise ValueError(f"Invalid output filename for input path: {file_rel}")
+
+    resolved = (output_dir / filename).resolve()
+    if not _is_relative_to(resolved, output_root.resolve()):
+        raise ValueError(f"Output path escapes configured root: {file_rel}")
+
+    return resolved
+
 
 class JobProcessor:
     def __init__(self):
@@ -29,7 +73,7 @@ class JobProcessor:
             if not files:
                 time.sleep(2)
                 continue
-                
+
             job_file = files[0]
             self.process_job(job_file)
 
@@ -59,19 +103,15 @@ class JobProcessor:
             # Input paths in job_data are relative to INPUT_ROOT
             # Output dir is relative to OUTPUT_ROOT
 
-            input_root = INPUT_ROOT
-            output_root = OUTPUT_ROOT
+            input_root = INPUT_ROOT.resolve()
+            output_root = OUTPUT_ROOT.resolve()
 
-            files = job_data.get("files", [])
+            files = job_data.get("files") or []
             dir_rel = job_data.get("dir")
             output_dir_rel = job_data.get("output_dir", "")
-
-            if dir_rel:
-                pass
-
             # If files list is empty but dir is present, scan dir?
             if not files and dir_rel:
-                source_dir = input_root / dir_rel.lstrip("/")
+                source_dir = _resolve_under_root(dir_rel, input_root, "input directory")
                 if source_dir.is_dir():
                     files = [
                         "/" + str(p.relative_to(input_root)).replace("\\", "/")
@@ -79,7 +119,7 @@ class JobProcessor:
                         if p.suffix.lower() in {".mkv", ".mp4", ".avi", ".mov"}
                     ]
 
-            output_dir = output_root / output_dir_rel.lstrip("/")
+            output_dir = _resolve_under_root(output_dir_rel, output_root, "output directory")
             output_dir.mkdir(parents=True, exist_ok=True)
 
             # Use 'selections' if available, otherwise use 'files' (fallback)
@@ -87,12 +127,18 @@ class JobProcessor:
 
             if selections:
                 total_files = len(selections)
-                for idx, sel in enumerate(selections):
+                resolved_selections = [
+                    (
+                        sel,
+                        _resolve_under_root(sel["rel_path"], input_root, "input file"),
+                        _output_path_for(output_dir, sel["rel_path"], output_root),
+                    )
+                    for sel in selections
+                ]
+
+                for idx, (sel, input_path, output_path) in enumerate(resolved_selections):
                     file_rel = sel["rel_path"]
                     self.update_status(job_id, "processing", (idx / total_files) * 100, current_file=file_rel)
-
-                    input_path = input_root / file_rel.lstrip("/")
-                    output_path = output_dir / Path(file_rel).name
 
                     if not input_path.exists():
                         print(f"Input not found: {input_path}")
@@ -111,11 +157,17 @@ class JobProcessor:
                     )
             else:
                 total_files = len(files)
-                for idx, file_rel in enumerate(files):
-                    self.update_status(job_id, "processing", (idx / total_files) * 100, current_file=file_rel)
+                resolved_files = [
+                    (
+                        file_rel,
+                        _resolve_under_root(file_rel, input_root, "input file"),
+                        _output_path_for(output_dir, file_rel, output_root),
+                    )
+                    for file_rel in files
+                ]
 
-                    input_path = input_root / file_rel.lstrip("/")
-                    output_path = output_dir / Path(file_rel).name
+                for idx, (file_rel, input_path, output_path) in enumerate(resolved_files):
+                    self.update_status(job_id, "processing", (idx / total_files) * 100, current_file=file_rel)
 
                     # Check if input exists
                     if not input_path.exists():
@@ -152,12 +204,12 @@ class JobProcessor:
             "overall_percent": percent,
             "current_file": current_file,
         }
-        
+
         # Simple atomic write
         tmp_file = status_file.with_suffix(".tmp")
         with open(tmp_file, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
-        
+
         # Retry replacing the file to handle Windows file locking issues
         # (e.g. if the API is currently reading the file)
         for _ in range(10):
